@@ -952,6 +952,9 @@ export default function App() {
   const isDrownedInStock = state.inventory.length > 50;
   const isFailureOutcome = isOutOfMoneyBankrupt || isBannedByReputation || isDrownedInStock;
 
+  // New accurate victory metric checking
+  const hasReachedVictoryCondition = totalAssetsSum >= 300000 || state.totalSold >= 100 || state.reputation >= 100;
+
   // Final Day check outcome triggers
   const forceGameOver = state.isGameOver || (state.day >= 30 && state.actionsLeft === 0) || isFailureOutcome;
 
@@ -962,6 +965,8 @@ export default function App() {
     failureReasonText = "因为你在闲鱼或面对客户时砍价太狠、卖假货不测退款纠纷太多，信用指数跌落至 10 以下！已被闲鱼封号、实体店拉横幅曝光，彻底宣告社会性死亡。";
   } else if (isDrownedInStock) {
     failureReasonText = "库存多于 50 张！货架倒塌、库房塞爆。由于资金被存货全部套牢毫无现金流，最终向网贷平台投降。";
+  } else if (state.day >= 30 && !hasReachedVictoryCondition) {
+    failureReasonText = "30天限期已至。在清账盘货结算时，你既没有达成 ¥300,000 总资产目标，也未能实现累计卖出 100 张显卡或攒齐 100 点信誉，遗憾未能通过考核。";
   }
 
   return (
@@ -991,7 +996,7 @@ export default function App() {
         <div className="hidden lg:flex items-center gap-5 text-xs font-mono">
           <div className="text-right">
             <span className="text-zinc-600 font-sans block text-[9px]">DIFFICULTY 等级</span>
-            <span className="text-zinc-400 font-bold uppercase">{state.difficulty === "easy" ? "🟢 轻松小白" : state.difficulty === "hard" ? "🔴 困难商人" : "🟡 极乐店长"}</span>
+            <span className="text-zinc-400 font-bold uppercase">{state.difficulty === "easy" ? "🟢 新手贩子" : state.difficulty === "hard" ? "🔴 矿老板克星" : "🟡 老油条"}</span>
           </div>
           <div className="w-px h-6 bg-zinc-900" />
           <div className="text-right">
@@ -1133,7 +1138,7 @@ export default function App() {
                 <span className="text-[10px] font-bold text-zinc-400 tracking-wider font-mono">🎯 达成目标所需（其一满足即可）：</span>
                 <ul className="text-[11px] text-zinc-500 list-disc list-inside space-y-1 font-sans">
                   <li>30天期末总资产达到 <strong className="text-zinc-400">¥300,000</strong></li>
-                  <li>累计成交买本 <strong className="text-zinc-400">100</strong> 张显卡</li>
+                  <li>累计卖出交易 <strong className="text-zinc-400">100</strong> 张显卡</li>
                   <li>商家信誉值滚到 <strong className="text-zinc-400">100满分</strong></li>
                 </ul>
               </div>
@@ -1254,7 +1259,7 @@ export default function App() {
                   onClick={() => handleStartWithDifficulty("easy")}
                   className="p-2.5 rounded-xl border border-emerald-900/30 bg-emerald-950/20 text-emerald-400 hover:bg-emerald-900/20 tracking-wider text-[11px] font-bold text-center transition py-3"
                 >
-                  🟢 轻松小白<br/>
+                  🟢 新手贩子<br/>
                   <span className="text-[9px] text-zinc-500 font-normal">本金8万 | 初始高信誉</span>
                 </button>
 
@@ -1263,7 +1268,7 @@ export default function App() {
                   onClick={() => handleStartWithDifficulty("normal")}
                   className="p-2.5 rounded-xl border border-indigo-900/30 bg-indigo-950/20 text-indigo-400 hover:bg-indigo-900/20 tracking-wider text-[11px] font-bold text-center transition py-3"
                 >
-                  🟡 极乐店长<br/>
+                  🟡 老油条<br/>
                   <span className="text-[9px] text-zinc-500 font-normal">本金5万 | 信誉正常</span>
                 </button>
 
@@ -1272,7 +1277,7 @@ export default function App() {
                   onClick={() => handleStartWithDifficulty("hard")}
                   className="p-2.5 rounded-xl border border-rose-905/30 bg-rose-950/20 text-rose-400 hover:bg-rose-900/20 tracking-wider text-[11px] font-bold text-center transition py-3 animate-pulse"
                 >
-                  🔴 困难商人<br/>
+                  🔴 矿老板克星<br/>
                   <span className="text-[9px] text-zinc-500 font-normal">本金3万 | 信誉低寒</span>
                 </button>
               </div>
@@ -1333,7 +1338,7 @@ export default function App() {
           totalBought={state.totalBought}
           totalSold={state.totalSold}
           crashCount={state.crashCount}
-          isFailure={isFailureOutcome || (state.day >= 30 && totalAssetsSum < 300000)}
+          isFailure={isFailureOutcome || (state.day >= 30 && !hasReachedVictoryCondition)}
           failureReason={failureReasonText}
           onRestart={() => {
             const cleared = initGameState("normal");

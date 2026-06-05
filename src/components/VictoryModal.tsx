@@ -36,7 +36,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
 }) => {
   const totalAssets = cash + inventoryCost;
   const results = getEndingResults(totalAssets, totalBought, totalSold, crashCount);
-  const isWinner = !isFailure && totalAssets >= 300000;
+  const isWinner = !isFailure && (totalAssets >= 300000 || totalSold >= 100 || reputation >= 100);
 
   // Clipboard copies state
   const [copied, setCopied] = useState(false);
