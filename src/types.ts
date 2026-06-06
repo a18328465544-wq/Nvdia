@@ -28,7 +28,7 @@ export interface InventoryGpu {
   condition: GpuCondition;
   risk: number; // actual calculated risk of issues
   hasIssue: boolean; // hidden defective issue (暗病)
-  isTested: boolean; // detected status ("未检测", "轻度检测", "烤机检测", etc.)
+  // Removed `isTested` — redundant with testResult: "未检测" means untested
   testResult: "未检测" | "正常" | "有暗病";
   issueKnown: boolean; // if the player has uncovered the issue
   defectType?: string; // description of the issue if found
@@ -38,16 +38,16 @@ export interface MarketCustomer {
   id: string;
   name: string;
   avatar: string;
-  kind: string; // "大学生", "刀客", "矿老板", "网吧老板", etc.
-  gpuName: string;
+  // Removed `kind` — redundant with condition (was always set to condition)
   condition: GpuCondition;
-  askPrice: number;
+  gpuName: string;
+  // Removed `askPrice` — redundant with currentAskPrice (initial value is the same)
+  currentAskPrice: number;
   talk: string;
   hiddenRisk: string; // defect message
   hasIssue: boolean;
   canBargain: boolean;
   bargainedCount: number; // times player negotiated
-  currentAskPrice: number;
 }
 
 export interface XianyuListing {

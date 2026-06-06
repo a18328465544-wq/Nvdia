@@ -212,7 +212,7 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
     // Scenario: Scammer Buyer ("到手刀") with normal Card
     else if (buyer.kind === "到手刀骗子") {
       // Scammer will complain even if card is 100% fine!
-      if (gpu.isTested && gpu.testResult === "正常") {
+      if (gpu.testResult !== "未检测" && gpu.testResult === "正常") {
         // Player has proof!
         repChange = 3; // secure rep because you stood your ground
         logMsg = `【识破骗子】闲鱼“到手刀”想要挑刺：抱怨说风扇声响、要求返款300。你当场晒出口碑极佳的“专业双烤烤机绿标检测报告”！对方哑口无言，只好确认收货！信誉 +3！`;
@@ -294,7 +294,7 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
     } 
     else if (strategy === "proof") {
       // Running benchmark proof
-      if (gpu.isTested) {
+      if (gpu.testResult !== "未检测") {
         // High success if pre-tested! 90% success rate
         if (roll < 88) {
           const diff = listingPrice - currentPrice;
@@ -367,7 +367,7 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
                   const condAttrs = getConditionAttributes(gpu.condition);
                   return (
                     <option key={gpu.id} value={gpu.id}>
-                      {gpu.name} (SN: {gpu.sn.slice(-4)}) | 成本: ¥{gpu.boughtPrice} | {gpu.condition} {gpu.isTested ? " [已检测]" : " [未检测]" }
+                      {gpu.name} (SN: {gpu.sn.slice(-4)}) | 成本: ¥{gpu.boughtPrice} | {gpu.condition} {gpu.testResult !== "未检测" ? " [已检测]" : " [未检测]" }
                     </option>
                   );
                 })}
@@ -552,21 +552,21 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
                           type="button"
                           onClick={() => handleCounterBargain("proof")}
                           className={`p-2 border rounded-lg text-left transition space-y-0.5 ${
-                            currentOffer.gpu.isTested
+                            currentOffer.gpu.testResult !== "未检测"
                               ? "bg-indigo-950/20 border-indigo-800/60 hover:bg-indigo-950/30"
                               : "bg-zinc-900 hover:bg-zinc-850 border-zinc-800"
                           }`}
                         >
                           <div className="text-xs font-bold text-zinc-200 flex items-center gap-1">
                             <span>亮出烤机图 📊</span>
-                            {currentOffer.gpu.isTested ? (
+                            {currentOffer.gpu.testResult !== "未检测" ? (
                               <span className="text-[9px] px-1 bg-indigo-900 text-indigo-200 rounded">已备证</span>
                             ) : (
                               <span className="text-[9px] px-1 bg-rose-950 text-rose-400 rounded">无数据!</span>
                             )}
                           </div>
                           <p className="text-[10px] text-zinc-500 font-mono">
-                            {currentOffer.gpu.isTested ? "30分钟甜甜圈通过" : "未跑分双烤, 易惹嫌疑"}
+                            {currentOffer.gpu.testResult !== "未检测" ? "30分钟甜甜圈通过" : "未跑分双烤, 易惹嫌疑"}
                           </p>
                         </button>
                       </div>
@@ -576,7 +576,7 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
               )}
 
               {/* Warnings regarding risk if untested etc. */}
-              {currentOffer.gpu.hasIssue && !currentOffer.gpu.isTested && (
+              {currentOffer.gpu.hasIssue && currentOffer.gpu.testResult === "未检测" && (
                 <div className="p-3.5 rounded-lg bg-orange-950/20 border border-orange-900/30 text-orange-400 text-xs flex items-start gap-2">
                   <AlertTriangle className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
                   <div>

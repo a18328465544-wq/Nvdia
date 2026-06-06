@@ -167,9 +167,9 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
   // Filter inventory
   const filteredInventory = state.inventory.filter((gpu) => {
     if (filterCondition === "all") return true;
-    if (filterCondition === "tested") return gpu.isTested;
-    if (filterCondition === "untested") return !gpu.isTested;
-    if (filterCondition === "defective") return gpu.isTested && gpu.testResult === "有暗病";
+    if (filterCondition === "tested") return gpu.testResult !== "未检测";
+    if (filterCondition === "untested") return gpu.testResult === "未检测";
+    if (filterCondition === "defective") return gpu.testResult !== "未检测" && gpu.testResult === "有暗病";
     return gpu.condition === filterCondition;
   });
 
@@ -301,7 +301,7 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
                 {/* Diagnostic Tested Status Ribbon */}
                 <div className="flex items-center justify-between text-xs py-2 px-3 rounded-lg bg-zinc-900 border border-zinc-800">
                   <span className="text-zinc-500 font-sans">检测报告</span>
-                  {gpu.isTested ? (
+                  {gpu.testResult !== "未检测" ? (
                     gpu.testResult === "有暗病" ? (
                       <span className="text-rose-400 font-bold flex items-center gap-1">
                         <XCircle className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
@@ -323,7 +323,7 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
 
                  {/* Action Buttons */}
                  <div className="flex gap-2.5">
-                   {gpu.isTested && gpu.testResult === "有暗病" ? (
+                   {gpu.testResult !== "未检测" && gpu.testResult === "有暗病" ? (
                      <button
                        id={`btn-open-repair-${gpu.id}`}
                        onClick={() => {

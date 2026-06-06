@@ -306,7 +306,6 @@ export default function App() {
       condition: customer.condition,
       risk: isBrandNew ? 5 : customer.condition === GpuCondition.PersonalUse ? 15 : customer.condition === GpuCondition.Netbar ? 35 : customer.condition === GpuCondition.Miner ? 60 : 80,
       hasIssue: customer.hasIssue,
-      isTested: false,
       testResult: "未检测",
       issueKnown: false
     };
@@ -395,7 +394,6 @@ export default function App() {
       condition,
       risk: condition === GpuCondition.Corpse ? 99 : 5,
       hasIssue,
-      isTested: false,
       testResult: "未检测",
       issueKnown: false
     };
@@ -546,7 +544,6 @@ export default function App() {
 
           return {
             ...gpu,
-            isTested: true,
             testResult: testResultText,
             issueKnown: (testResultText === "有暗病" || isCorpse) ? true : gpu.issueKnown,
             defectType: isCorpse ? "物理毁坏/水泥假核心" : (testResultText === "有暗病" ? "核心缩缸或显存过热" : undefined)
@@ -601,7 +598,6 @@ export default function App() {
             ...gpu,
             hasIssue: false,
             testResult: "正常",
-            isTested: true,
             condition: improvedCondition,
             boughtPrice: Math.max(100, Math.round(gpu.boughtPrice * (1 - costDiscountPercentage / 100))),
             defectType: undefined
