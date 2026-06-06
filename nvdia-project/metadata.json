@@ -1,6 +1,0 @@
-{
-  "name": "显卡贩子模拟器",
-  "description": "扮演商贩收售显卡、压价避坑，在有限天数内挑战把本金做大，努力成为显卡贩子大王",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
