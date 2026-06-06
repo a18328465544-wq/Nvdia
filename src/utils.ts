@@ -126,16 +126,14 @@ export function generateRandomSeller(id: string, dailyPrices: Record<string, num
     id,
     name,
     avatar,
-    kind: condition, // e.g. "个人自用", "网吧卡", "矿卡"
-    gpuName: gpuPreset.name,
     condition,
-    askPrice,
+    gpuName: gpuPreset.name,
+    currentAskPrice: askPrice,
     talk,
     hiddenRisk: hasIssue ? defect.desc : "一切正常",
     hasIssue,
     canBargain: true,
     bargainedCount: 0,
-    currentAskPrice: askPrice
   };
 }
 

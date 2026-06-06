@@ -211,7 +211,7 @@ export const MarketArea: React.FC<MarketAreaProps> = ({
                       <div className="flex items-center gap-1.5">
                         <span className="font-bold text-sm text-zinc-200">{c.name}</span>
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700/60">
-                          {c.kind}
+                          {c.condition}
                         </span>
                       </div>
                       <div className="text-xs text-zinc-500 flex items-center gap-1 mt-0.5">
