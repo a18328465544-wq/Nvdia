@@ -1,0 +1,134 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", -apple-system, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
+
+  /* Redefine Zinc to match the Tech Grid aesthetic exactly: */
+  --color-zinc-50: #e0e6ed;
+  --color-zinc-100: #e0e6ed;
+  --color-zinc-200: #c5d1de;
+  --color-zinc-300: #a0aec0;
+  --color-zinc-400: #718096;
+  --color-zinc-500: #4a5568;
+  --color-zinc-600: #2d3748;
+  --color-zinc-700: #1a202c;
+  --color-zinc-800: #24292e; /* design --border */
+  --color-zinc-900: #111418; /* design --panel */
+  --color-zinc-950: #090a0c; /* design --bg */
+
+  /* Map indigo (accent primary) to the bright tech green `#00ff9d` */
+  --color-indigo-400: #00ff9d; /* design --accent */
+  --color-indigo-500: #00e58d;
+  --color-indigo-600: #00ff9d;
+  --color-indigo-700: #00804f;
+  --color-indigo-950: rgba(0, 255, 157, 0.05);
+
+  /* Map emerald (success) to the bright tech green `#00ff9d` too! */
+  --color-emerald-400: #00ff9d;
+  --color-emerald-500: #00ff9d;
+  --color-emerald-600: #00df87;
+
+  /* Map rose/red (danger) to `#ff4d4d` */
+  --color-rose-400: #ff4d4d; /* design --danger */
+  --color-rose-500: #ff4d4d;
+  --color-rose-600: #e53935;
+
+  /* Map amber/yellow (warning) to `#ffcc00` */
+  --color-amber-400: #ffcc00; /* design --warning */
+  --color-amber-500: #ffcc00;
+  --color-amber-600: #e5b800;
+
+  --color-blue-400: #00b0ff;
+  --color-blue-500: #0091ea;
+}
+
+/* Custom overrides to force precise technical grid layout look & feel */
+@layer base {
+  body, html {
+    margin: 0;
+    padding: 0;
+    background-color: #090a0c !important;
+    color: #e0e6ed !important;
+    font-family: "Inter", -apple-system, system-ui, sans-serif;
+  }
+
+  /* Tech cyber-designed scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #090a0c;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #24292e;
+    border: 1px solid #111418;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #00ff9d;
+  }
+}
+
+/* Technical typography & layout overrides */
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Inter", -apple-system, system-ui, sans-serif;
+  letter-spacing: -0.025em;
+}
+
+/* Tech monospace data counters and logs */
+.font-mono, .stat-value, .gpu-sn {
+  font-family: "JetBrains Mono", monospace !important;
+}
+
+/* Smooth active micro-animations */
+button {
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Add custom tech indicator classes to match elements in mockup */
+.technical-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-family: "JetBrains Mono", monospace;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.technical-badge-new {
+  background: rgba(0, 255, 157, 0.15) !important;
+  color: #00ff9d !important;
+  border: 1px solid rgba(0, 255, 157, 0.3) !important;
+}
+
+.technical-badge-mine {
+  background: rgba(255, 122, 0, 0.15) !important;
+  color: #ff7a00 !important;
+  border: 1px solid rgba(255, 122, 0, 0.3) !important;
+}
+
+.technical-badge-repair {
+  background: rgba(255, 77, 77, 0.15) !important;
+  color: #ff4d4d !important;
+  border: 1px solid rgba(255, 77, 77, 0.3) !important;
+}
+
+/* Custom Scanline aesthetic overlay backing the technical panels */
+.tech-scanlines {
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  ), linear-gradient(
+    90deg, 
+    rgba(255, 0, 0, 0.06), 
+    rgba(0, 255, 0, 0.02), 
+    rgba(0, 0, 255, 0.06)
+  );
+  background-size: 100% 4px, 6px 100%;
+}
