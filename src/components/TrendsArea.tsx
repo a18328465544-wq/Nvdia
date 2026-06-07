@@ -30,19 +30,19 @@ export const TrendsArea: React.FC<TrendsAreaProps> = ({ state }) => {
       {/* Title section */}
       <div id="trends-welcome-banner" className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-zinc-900/30 p-4 rounded-xl border border-zinc-800/80 gap-3">
         <div id="trends-title" className="space-y-1">
-          <h2 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
+          <h2 className="typo-title-md flex items-center gap-2">
             <Activity className="text-emerald-400 w-5 h-5 animate-pulse" />
             赛博华强北 & 闲鱼指数实时价格监控大屏
           </h2>
-          <p className="text-xs text-zinc-400">
+          <p className="typo-body-regular">
             实时汇总各大代理商及咸鱼成交基准价格。结合今日大盘广播，迅速捕获暴涨潜力和暴跌货源。
           </p>
         </div>
 
         {/* Global quote view */}
         <div className="text-right">
-          <div className="text-[10px] text-zinc-500 uppercase tracking-wide font-mono">今日大盘指数点评：</div>
-          <p className="text-xs text-emerald-400 font-medium italic mt-1 bg-emerald-950/20 px-3 py-1.5 rounded-lg border border-emerald-900/20 max-w-sm">
+          <div className="typo-title-xs text-zinc-500 font-mono">今日大盘指数点评：</div>
+          <p className="typo-body-regular text-emerald-400 font-medium italic mt-1 bg-emerald-950/20 px-3 py-1.5 rounded-lg border border-emerald-900/20 max-w-sm">
             “{state.todayMarketTalk}”
           </p>
         </div>
@@ -53,7 +53,7 @@ export const TrendsArea: React.FC<TrendsAreaProps> = ({ state }) => {
         
         {/* Left 2 Cols: Ticker Exchange Grid */}
         <div id="ticker-grid-container" className="xl:col-span-2 space-y-4 font-mono">
-          <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1">
+          <h3 className="typo-title-xs text-zinc-400 font-mono">
             <span>🔴 BASE MARKET TICKERS (基准指导价看板)</span>
           </h3>
 
@@ -62,9 +62,9 @@ export const TrendsArea: React.FC<TrendsAreaProps> = ({ state }) => {
               const currentPrice = state.gpuPriceFluctuations[preset.name] || preset.basePrice;
               const history = state.gpuPriceHistories[preset.name] || [preset.basePrice];
               
-              // Fluctuation calculation vs base or yesterday
-              const basePrice = preset.basePrice;
-              const percentDiff = ((currentPrice - basePrice) / basePrice) * 100;
+              // Fluctuation calculation vs yesterday's price
+              const prevPrice = history.length > 1 ? history[history.length - 2] : preset.basePrice;
+              const percentDiff = ((currentPrice - prevPrice) / prevPrice) * 100;
               const isGain = percentDiff >= 0;
 
               // Check if currently affected by global events
@@ -83,29 +83,29 @@ export const TrendsArea: React.FC<TrendsAreaProps> = ({ state }) => {
                 >
                   {/* Neon tag indicating active event boost */}
                   {isAffected && (
-                    <div className="absolute top-0 right-0 px-2 py-0.5 bg-rose-500 text-zinc-950 font-black text-[9px] uppercase tracking-wider animate-pulse rounded-bl">
+                    <div className="absolute top-0 right-0 px-2 py-1 bg-rose-500 text-zinc-950 font-black text-xs uppercase tracking-wider animate-pulse rounded-bl">
                       HOT AI
                     </div>
                   )}
 
-                  <div className="flex justify-between items-start">
+                  <div className="flex justify-between items-start font-sans">
                     <div>
-                      <span className="text-xs text-zinc-500 uppercase">GPU PRESSET</span>
-                      <h4 className="text-sm font-extrabold text-zinc-100 tracking-tight mt-0.5 group-hover:text-indigo-400 transition-colors">
+                      <span className="typo-mono-tiny">GPU PRESET</span>
+                      <h4 className="typo-title-sm text-zinc-100 mt-0.5 group-hover:text-indigo-400 transition-colors">
                         {preset.name}
                       </h4>
                     </div>
 
                     <div className="text-right">
-                      <span className="text-xs text-zinc-500">大盘指导价</span>
-                      <div className="text-base font-bold text-zinc-200 mt-0.5">
+                      <span className="typo-mono-tiny">大盘指导价</span>
+                      <div className="typo-mono-regular font-bold text-zinc-200 mt-0.5">
                         {formatCurrency(currentPrice)}
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-3 pt-2.5 border-t border-zinc-900 flex justify-between items-center text-xs">
-                    <span className="text-[11px] text-zinc-500">基准价: {formatCurrency(preset.basePrice)}</span>
+                  <div className="mt-3 pt-2.5 border-t border-zinc-900 flex justify-between items-center text-xs font-sans">
+                    <span className="typo-mono-tiny">基准价: {formatCurrency(preset.basePrice)}</span>
                     
                     <span className={`inline-flex items-center gap-0.5 font-bold px-1.5 py-0.5 rounded ${isGain ? 'text-emerald-400 bg-emerald-950/20' : 'text-rose-400 bg-rose-950/20'}`}>
                       {isGain ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
@@ -121,11 +121,11 @@ export const TrendsArea: React.FC<TrendsAreaProps> = ({ state }) => {
         {/* Right 1 Col: Sparkline trend tracker */}
         <div id="chart-sparkline-container" className="border border-zinc-800 bg-zinc-900/30 rounded-2xl p-5 space-y-4 flex flex-col justify-between">
           <div className="space-y-1.5 pb-3 border-b border-zinc-800/80">
-            <h3 className="text-xs font-bold text-zinc-300 flex items-center gap-1.5 uppercase font-mono">
+            <h3 className="typo-title-xs text-zinc-300 flex items-center gap-1.5 font-mono">
               <Activity className="w-4 h-4 text-indigo-400" />
               <span>走势回溯图：{selectedGpuForChart}</span>
             </h3>
-            <p className="text-[10px] text-zinc-500 leading-normal">
+            <p className="typo-body-regular">
               显示从开业第 1 天起，该型号大盘成交价的走势演变历史。
             </p>
           </div>
@@ -180,15 +180,15 @@ export const TrendsArea: React.FC<TrendsAreaProps> = ({ state }) => {
                   )}
 
                   {/* High and Low indicator */}
-                  <div className="absolute top-1 left-2 text-[9px] font-mono text-zinc-500">
+                  <div className="absolute top-1 left-2 text-xs font-mono text-zinc-500">
                     High: {formatCurrency(maxVal)}
                   </div>
-                  <div className="absolute bottom-1 left-2 text-[9px] font-mono text-zinc-500">
+                  <div className="absolute bottom-1 left-2 text-xs font-mono text-zinc-500">
                     Low: {formatCurrency(minVal)}
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center text-[10px] text-zinc-500 font-mono">
+                <div className="flex justify-between items-center text-xs text-zinc-500 font-mono">
                   <span>DAY 01</span>
                   <span>今日 (第 {state.day} 天)</span>
                 </div>
@@ -197,7 +197,7 @@ export const TrendsArea: React.FC<TrendsAreaProps> = ({ state }) => {
           })()}
 
           {/* Explanation panel */}
-          <div className="bg-zinc-950 p-3 rounded-lg border border-zinc-900 text-[11px] text-zinc-400 space-y-1.5 font-sans leading-relaxed">
+          <div className="bg-zinc-950 p-3 rounded-lg border border-zinc-900 text-xs text-zinc-400 space-y-1.5 font-sans leading-relaxed">
             <div className="flex gap-1.5 items-center font-bold text-zinc-300 text-xs text-indigo-400">
               <Info className="w-3.5 h-3.5" />
               <span>商贩指导策略提示</span>

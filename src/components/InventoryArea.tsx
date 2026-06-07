@@ -167,9 +167,9 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
   // Filter inventory
   const filteredInventory = state.inventory.filter((gpu) => {
     if (filterCondition === "all") return true;
-    if (filterCondition === "tested") return gpu.testResult !== "未检测";
-    if (filterCondition === "untested") return gpu.testResult === "未检测";
-    if (filterCondition === "defective") return gpu.testResult !== "未检测" && gpu.testResult === "有暗病";
+    if (filterCondition === "tested") return gpu.isTested;
+    if (filterCondition === "untested") return !gpu.isTested;
+    if (filterCondition === "defective") return gpu.isTested && gpu.testResult === "有暗病";
     return gpu.condition === filterCondition;
   });
 
@@ -201,11 +201,11 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
       {/* Inventory Header Filter */}
       <div id="inventory-welcome-banner" className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-zinc-900/30 p-4 rounded-xl border border-zinc-800/80 gap-3">
         <div id="inventory-header-title" className="space-y-1">
-          <h2 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
+          <h2 className="typo-title-md flex items-center gap-2">
             <Box className="text-sky-400 w-5 h-5" />
             货架库存管理：{state.inventory.length} / 50 张
           </h2>
-          <p className="text-xs text-zinc-400">
+          <p className="typo-body-regular">
             你已经收来的货。可以对他们运行深度检测、打上良品标签，免得挂在闲鱼时被买家抓住瑕疵到手刀倒打一耙！
           </p>
         </div>
@@ -234,8 +234,8 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
         <div id="empty-inventory-state" className="flex flex-col items-center justify-center p-12 border border-dashed border-zinc-800 rounded-2xl bg-zinc-900/10 text-center space-y-4">
           <div className="text-4xl">📦</div>
           <div className="space-y-1">
-            <h3 className="text-zinc-200 font-bold text-sm">此分类下没有任何显卡</h3>
-            <p className="text-xs text-zinc-500 max-w-sm">
+            <h3 className="typo-title-sm text-zinc-200">此分类下没有任何显卡</h3>
+            <p className="typo-body-regular max-w-sm">
               你目前可能还没有买到任何符合该条件的显卡。赶快去操作面板的“去市场收卡”囤点货吧，低进高出才是王道！
             </p>
           </div>
@@ -257,12 +257,12 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
               >
                 {/* Condition and SN row */}
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-[10px] text-zinc-500 font-mono flex items-center gap-1">
+                  <span className="text-xs text-zinc-500 font-mono flex items-center gap-1">
                     <Clock className="w-3 h-3 text-zinc-600" />
                     <span>第 {gpu.boughtDay} 天买盘入库</span>
                   </span>
                   
-                  <span className={`text-[10px] px-2 py-0.5 rounded border ${condAttrs.badgeColor}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded border ${condAttrs.badgeColor}`}>
                     {gpu.condition}
                   </span>
                 </div>
@@ -272,7 +272,7 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
                   <h3 className="text-sm font-extrabold text-zinc-200 tracking-tight">
                     {gpu.name}
                   </h3>
-                  <div className="text-[10px] text-zinc-500 font-mono mt-0.5">
+                  <div className="text-xs text-zinc-500 font-mono mt-0.5">
                     {gpu.sn}
                   </div>
                 </div>
@@ -301,7 +301,7 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
                 {/* Diagnostic Tested Status Ribbon */}
                 <div className="flex items-center justify-between text-xs py-2 px-3 rounded-lg bg-zinc-900 border border-zinc-800">
                   <span className="text-zinc-500 font-sans">检测报告</span>
-                  {gpu.testResult !== "未检测" ? (
+                  {gpu.isTested ? (
                     gpu.testResult === "有暗病" ? (
                       <span className="text-rose-400 font-bold flex items-center gap-1">
                         <XCircle className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
@@ -323,7 +323,7 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
 
                  {/* Action Buttons */}
                  <div className="flex gap-2.5">
-                   {gpu.testResult !== "未检测" && gpu.testResult === "有暗病" ? (
+                   {gpu.isTested && gpu.testResult === "有暗病" ? (
                      <button
                        id={`btn-open-repair-${gpu.id}`}
                        onClick={() => {
@@ -385,11 +385,11 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
               >
                 <div>
                   <div className="text-xs font-bold text-zinc-200 group-hover:text-indigo-400">1. 普通轻度检测</div>
-                  <div className="text-[11px] text-zinc-500 mt-0.5">电脑店上机点亮，发现暗病率 40%</div>
+                  <div className="text-xs text-zinc-500 mt-1 font-medium">电脑店上机点亮，发现暗病率 40%</div>
                 </div>
                 <div className="text-right font-mono text-xs">
                   <div className="text-amber-400 font-bold">¥50</div>
-                  <div className="text-zinc-500 text-[10px]">行动点 -1</div>
+                  <div className="text-zinc-500 text-xs">行动点 -1</div>
                 </div>
               </button>
 
@@ -401,11 +401,11 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
               >
                 <div>
                   <div className="text-xs font-bold text-zinc-200 group-hover:text-indigo-400">2. GPU-Z 深度排障</div>
-                  <div className="text-[11px] text-zinc-500 mt-0.5">拆解抠背板、排查供电飞线，发现暗病率 80%</div>
+                  <div className="text-xs text-zinc-500 mt-1 font-medium">拆解抠背板、排查供电飞线，发现暗病率 80%</div>
                 </div>
                 <div className="text-right font-mono text-xs">
                   <div className="text-amber-400 font-bold">¥200</div>
-                  <div className="text-zinc-500 text-[10px]">行动点 -1</div>
+                  <div className="text-zinc-500 text-xs">行动点 -1</div>
                 </div>
               </button>
 
@@ -420,11 +420,11 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
                     <Flame className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
                     <span>3. 甜甜圈+3DMark烤机检测</span>
                   </div>
-                  <div className="text-[11px] text-zinc-500 mt-0.5">高负荷满载烤机 30 分钟，发现暗病率 95%</div>
+                  <div className="text-xs text-zinc-500 mt-1 font-medium">高负荷满载烤机 30 分钟，发现暗病率 95%</div>
                 </div>
                 <div className="text-right font-mono text-xs">
                   <div className="text-amber-400 font-bold">¥500</div>
-                  <div className="text-zinc-500 text-[10px]">行动点 -1</div>
+                  <div className="text-zinc-500 text-xs">行动点 -1</div>
                 </div>
               </button>
 
@@ -451,14 +451,14 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
             {/* Header */}
             <div className="flex justify-between items-start border-b border-zinc-900 pb-3">
               <div className="space-y-1">
-                <div className="text-[10px] text-amber-500 font-mono tracking-widest uppercase flex items-center gap-1.5 font-bold">
+                <div className="text-xs text-amber-500 font-mono tracking-widest uppercase flex items-center gap-1.5 font-bold">
                   <Wrench className="w-3.5 h-3.5" />
                   <span>自主维修整备工坊</span>
                 </div>
                 <h3 className="text-base font-black text-zinc-100">
                   整修宝贝: {repairModalTarget.name}
                 </h3>
-                <p className="text-[11px] text-zinc-500 font-mono">
+                <p className="text-xs text-zinc-400 font-mono">
                   SN: {repairModalTarget.sn} | 状态: {repairModalTarget.condition} ({repairModalTarget.defectType || "核心缩缸风扇故障"})
                 </p>
               </div>
@@ -501,7 +501,7 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
                     </div>
                     <div>
                       <h4 className="text-xs font-black text-zinc-200 group-hover:text-sky-400">🔥 方案 A：超声波清尘 & 风扇轴承油脂注入</h4>
-                      <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">
+                      <p className="text-xs text-zinc-500 mt-1 leading-relaxed font-normal">
                         由于长时间挖矿或网吧水洗，风扇轴承严重磨损进灰。在 10 秒钟内用气吹或镊子，迅速点爆主板和扇叶上的 6 颗积尘污垢块，恢复清亮微风！
                       </p>
                     </div>
@@ -518,7 +518,7 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
                     </div>
                     <div>
                       <h4 className="text-xs font-black text-zinc-200 group-hover:text-emerald-400 font-sans">🔥 方案 B：原厂高性能 PTM7951 导热片涂抹</h4>
-                      <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">
+                      <p className="text-xs text-zinc-500 mt-1 leading-relaxed font-normal">
                         散热底座硅脂化水，导致烤机秒飙 105℃ 黑屏花屏。在 10 秒内，用硅脂刮刀点击锁定芯片中央及 4 处高热电容/显存热敏区，达到 100% 均匀覆盖！
                       </p>
                     </div>
@@ -557,7 +557,7 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
                 {/* Playboard Area */}
                 {activeGame === "dust" ? (
                   <div className="space-y-2">
-                    <div className="text-[11px] text-zinc-400 italic">【风扇除尘小游戏】用螺丝刀/螺杆鼠标依次狂点并引爆黄色积灰块！</div>
+                    <div className="text-xs text-zinc-400 italic">【风扇除尘小游戏】用螺丝刀/螺杆鼠标依次狂点并引爆黄色积灰块！</div>
                     <div className="h-48 w-full bg-zinc-900/50 border border-zinc-800/80 rounded-xl relative overflow-hidden flex items-center justify-center p-4">
                       {/* Stylized background graphics indicating dual fans */}
                       <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 flex justify-between pointer-events-none opacity-20">
@@ -584,7 +584,7 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
                           }`}
                         >
                           {!spot.cleaned && (
-                            <span className="text-[10px] scale-75 font-black text-amber-300">☁️</span>
+                            <span className="text-xs scale-75 font-black text-amber-300">☁️</span>
                           )}
                         </button>
                       ))}
@@ -599,11 +599,11 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <div className="text-[11px] text-zinc-400 italic">【硅脂精密敷设】按顺序精密点击所有闪灼虚线区域，均匀盖好硅树脂脂垫！</div>
+                    <div className="text-xs text-zinc-400 italic">【硅脂精密敷设】按顺序精密点击所有闪灼虚线区域，均匀盖好硅树脂脂垫！</div>
                     <div className="h-48 w-full bg-slate-950 border border-zinc-800/80 rounded-xl relative overflow-hidden flex items-center justify-center p-4">
                       {/* Stylized chip silicon core graphics */}
                       <div className="absolute inset-12 border border-emerald-500/20 bg-zinc-900/10 rounded pointer-events-none flex flex-col items-center justify-center shrink-0">
-                        <div className="text-[9px] font-mono text-emerald-500/30 tracking-widest select-none font-bold">NVIDIA / AMD CHIP DIE</div>
+                        <div className="text-xs font-mono text-emerald-500/30 tracking-widest select-none font-bold">NVIDIA / AMD CHIP DIE</div>
                         <div className="w-16 h-16 border border-emerald-500/10 rounded-sm mt-1 animate-pulse" />
                       </div>
 
@@ -617,7 +617,7 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
                             left: `${node.x}%`,
                             top: `${node.y}%`,
                           }}
-                          className={`absolute -translate-x-1/2 -translate-y-1/2 px-2.5 py-1.5 rounded-lg text-[9px] font-mono border font-extrabold shadow-md transition-all duration-300 ${
+                          className={`absolute -translate-x-1/2 -translate-y-1/2 px-2.5 py-1.5 rounded-lg text-xs font-mono border font-extrabold shadow-md transition-all duration-300 ${
                             node.pasted
                               ? "bg-emerald-950/60 text-emerald-400 border-emerald-500/40 shadow-emerald-500/10"
                               : "bg-zinc-900 border-zinc-700 hover:border-emerald-500/50 hover:bg-zinc-800 text-zinc-400 animate-pulse"
@@ -625,7 +625,7 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
                         >
                           <div className="flex flex-col items-center gap-0.5">
                             <span>{node.pasted ? "🔹 已涂填" : "⚪ 待对准"}</span>
-                            <span className="scale-75 text-[8px] opacity-60 font-medium whitespace-nowrap">{node.label}</span>
+                            <span className="scale-75 text-xs opacity-60 font-medium whitespace-nowrap">{node.label}</span>
                           </div>
                         </button>
                       ))}
@@ -661,7 +661,7 @@ export const InventoryArea: React.FC<InventoryAreaProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="text-zinc-500">成色质量晋升:</span>
                     <span className="text-zinc-200 font-bold flex items-center gap-1.5">
-                      <span className="text-[10px] text-zinc-500 line-through">{repairModalTarget.condition}</span>
+                      <span className="text-xs text-zinc-500 line-through">{repairModalTarget.condition}</span>
                       <span>➡️</span>
                       <span className="text-emerald-400 font-black">
                         {(() => {

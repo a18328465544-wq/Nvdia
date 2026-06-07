@@ -63,11 +63,11 @@ export const MarketArea: React.FC<MarketAreaProps> = ({
       {/* Tab Header Banner */}
       <div id="market-welcome-banner" className="flex justify-between items-center bg-zinc-900/30 p-4 rounded-xl border border-zinc-800/80">
         <div className="space-y-1">
-          <h2 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
+          <h2 className="typo-title-md flex items-center gap-2">
             <User className="text-indigo-400 w-5 h-5" />
             老板今日柜台收卡区
           </h2>
-          <p className="text-xs text-zinc-400 font-sans">
+          <p className="typo-body-regular">
             散客和贩子送货上门。注意识别他们的黑话、对比今日行情价、使劲压价或直接拿下。
           </p>
         </div>
@@ -93,9 +93,9 @@ export const MarketArea: React.FC<MarketAreaProps> = ({
           <div className="flex-1 space-y-3">
             <div className="flex items-center gap-2">
               <span className="text-xl animate-bounce">🏮</span>
-              <h3 className="text-xs font-black tracking-widest text-[#a855f7] uppercase flex items-center gap-1.5 font-mono">
+              <h3 className="typo-title-xs text-[#a855f7] flex items-center gap-1.5 font-mono">
                 <span>MIDNIGHT BLACK MARKET / 深夜秘密交易网</span>
-                <span className="text-[9px] px-1 bg-red-500/10 border border-red-500/30 text-rose-400 font-bold rounded animate-pulse">UNDERGROUND</span>
+                <span className="text-xs px-1.5 py-0.5 bg-red-500/10 border border-red-500/30 text-rose-400 font-bold rounded animate-pulse">UNDERGROUND</span>
               </h3>
             </div>
             
@@ -103,7 +103,7 @@ export const MarketArea: React.FC<MarketAreaProps> = ({
               夜半三更，阴冷的小吃街尽头。一个戴着鸭舌帽的黑脸商贩神秘招手。这里只支持直接现金流交易。虽然你能以不到半折的价格暴爽买到全新/个人自用的顶配大卡（如 RTX 4090/5090 等），但也面临 60% 极高爆率拿下一纸物理碎裂、核心灌水泥的彻底坏卡 ——【尸体卡】！
             </p>
 
-            <div className="text-[10px] text-zinc-500 font-mono space-y-1 border-t border-purple-950/40 pt-2">
+            <div className="text-xs text-zinc-500 font-mono space-y-1 border-t border-purple-950/40 pt-2">
               <div className="text-purple-400 font-bold">⚠️ 黑街战术提示：</div>
               <div>1. 尸体卡成本极低，正常在闲鱼只能折价 5% 卖给拆旧收破烂的，但至少返还 +1 商家诚实誉值。</div>
               <div>2. 若不经跑分检测企图直接以普通卡不披露故障欺诈在闲鱼挂售，买家上机 100% 翻车，被闲鱼直接仲裁退款重罚本金 85% 赔款并扣除巨额信誉 (-20)！</div>
@@ -123,11 +123,11 @@ export const MarketArea: React.FC<MarketAreaProps> = ({
                 onClick={() => onBuyBlackMarket("mid")}
                 className="py-2.5 px-3 rounded-lg border border-purple-500/30 bg-purple-950/20 hover:bg-purple-950/40 hover:border-purple-400 transition text-left space-y-0.5 group disabled:opacity-30 disabled:hover:bg-purple-950/20"
               >
-                <div className="text-[11px] font-bold text-purple-200 group-hover:text-purple-300 flex justify-between items-center">
+                <div className="text-xs font-bold text-purple-200 group-hover:text-purple-300 flex justify-between items-center">
                   <span>中端黑市盲盒 📦</span>
                   <span className="text-purple-400 font-extrabold">¥1,500</span>
                 </div>
-                <div className="text-[9px] text-zinc-400 font-sans leading-tight">
+                <div className="text-xs text-zinc-400 font-sans leading-tight">
                   包含 3070/3080/4070S 等。40%极品 / 60%拆机尸体！
                 </div>
               </button>
@@ -139,17 +139,17 @@ export const MarketArea: React.FC<MarketAreaProps> = ({
                 onClick={() => onBuyBlackMarket("high")}
                 className="py-2.5 px-3 rounded-lg border border-pink-500/30 bg-pink-950/20 hover:bg-pink-950/40 hover:border-pink-400 transition text-left space-y-0.5 group disabled:opacity-30 disabled:hover:bg-pink-950/20"
               >
-                <div className="text-[11px] font-bold text-pink-200 group-hover:text-pink-300 flex justify-between items-center">
+                <div className="text-xs font-bold text-pink-200 group-hover:text-pink-300 flex justify-between items-center">
                   <span>顶级摸金盲盒 💎</span>
                   <span className="text-pink-400 font-extrabold">¥4,500</span>
                 </div>
-                <div className="text-[9px] text-zinc-400 font-sans leading-tight">
+                <div className="text-xs text-zinc-400 font-sans leading-tight">
                   包含 3090/4090/5090 等。40%发大财 / 60%巨响尸体！
                 </div>
               </button>
             </div>
 
-            <div className="text-[10px] text-zinc-500 text-center flex justify-between font-sans mt-1">
+            <div className="text-xs text-zinc-500 text-center flex justify-between font-sans mt-1">
               <span>每次淘货: -1 ⚡</span>
               <span>剩余步数: {state.actionsLeft} 点</span>
             </div>
@@ -157,14 +157,14 @@ export const MarketArea: React.FC<MarketAreaProps> = ({
         </div>
       ) : (
         /* Disabled static box showing the lock info */
-        <div id="black-market-locked-panel" className="p-4 rounded-xl border border-zinc-900 bg-zinc-950/40 flex items-center justify-between gap-4 font-mono text-[11px]">
+        <div id="black-market-locked-panel" className="p-4 rounded-xl border border-zinc-900 bg-zinc-950/40 flex items-center justify-between gap-4 font-mono text-xs">
           <div className="flex items-center gap-2 text-zinc-500 leading-relaxed">
             <span className="text-base select-none">🔒</span>
             <span>
               <strong className="text-zinc-400">深夜黑市据点未开放</strong> —— 通常街区处于闭店夜休状态。建议每天晨会多看行情播报，当产生 <strong className="text-purple-400">“深夜黑市开启”</strong> 特殊传闻，此处就会向你敞开怀抱！
             </span>
           </div>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-600 border border-zinc-800 shrink-0 font-bold">LOCKED</span>
+          <span className="text-xs px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-600 border border-zinc-800 shrink-0 font-bold">LOCKED</span>
         </div>
       )}
 
@@ -195,6 +195,34 @@ export const MarketArea: React.FC<MarketAreaProps> = ({
             const isInventoryRoomLeft = state.inventory.length < 50;
             const isActionAvailable = state.actionsLeft > 0;
 
+            // Robust sanitization to prevent duplicate/overlapping tags (e.g. "自用卡友" or "退役散客" combined with condition)
+            let displayKind = c.kind;
+            if (c.condition === GpuCondition.PersonalUse) {
+              if (displayKind.includes("自用") || displayKind.includes("个人") || displayKind.includes("退役") || displayKind.includes("散客")) {
+                displayKind = "日常搁置";
+              }
+            } else if (c.condition === GpuCondition.BrandNew) {
+              if (displayKind.includes("全新") || displayKind.includes("一手") || displayKind.includes("未拆")) {
+                displayKind = "渠道爆货";
+              }
+            } else if (c.condition === GpuCondition.Miner) {
+              if (displayKind.includes("矿") || displayKind.includes("洗白")) {
+                displayKind = "撤店倒闭";
+              }
+            } else if (c.condition === GpuCondition.Netbar) {
+              if (displayKind.includes("网吧") || displayKind.includes("退役")) {
+                displayKind = "转营重组";
+              }
+            } else if (c.condition === GpuCondition.Repaired) {
+              if (displayKind.includes("修") || displayKind.includes("售后") || displayKind.includes("改装")) {
+                displayKind = "救砖玩家";
+              }
+            } else if (c.condition === GpuCondition.Corpse) {
+              if (displayKind.includes("尸体") || displayKind.includes("坏卡")) {
+                displayKind = "古董盲盒";
+              }
+            }
+
             return (
               <div 
                 key={c.id} 
@@ -210,14 +238,14 @@ export const MarketArea: React.FC<MarketAreaProps> = ({
                     <div>
                       <div className="flex items-center gap-1.5">
                         <span className="font-bold text-sm text-zinc-200">{c.name}</span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700/60">
-                          {c.condition}
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700/60">
+                          {displayKind}
                         </span>
                       </div>
                       <div className="text-xs text-zinc-500 flex items-center gap-1 mt-0.5">
                         <MessageSquare className="w-3 h-3 text-zinc-600" />
                         <span>提供货源：</span>
-                        <span className="font-semibold text-zinc-300 font-mono">{c.gpuName}</span>
+                        <span className="font-semibold text-zinc-300 font-mono text-xs">{c.gpuName}</span>
                       </div>
                     </div>
                   </div>
@@ -230,7 +258,7 @@ export const MarketArea: React.FC<MarketAreaProps> = ({
 
                 {/* Speech container */}
                 <div className="relative bg-zinc-900/60 p-3.5 rounded-xl border border-zinc-800/50 text-xs italic text-zinc-300 leading-relaxed">
-                  <div className="absolute top-2 right-2 text-[10px] text-zinc-600 font-mono select-none">
+                  <div className="absolute top-2 right-2 text-xs text-zinc-600 font-mono select-none">
                     #QUOTE
                   </div>
                   "{c.talk}"
@@ -239,24 +267,24 @@ export const MarketArea: React.FC<MarketAreaProps> = ({
                 {/* Valuation Info Panels */}
                 <div className="grid grid-cols-2 gap-3.5 p-3.5 rounded-xl bg-zinc-950/60 border border-zinc-900 font-mono text-xs">
                   <div>
-                    <div className="text-zinc-500 text-[10px]">对方报价</div>
+                    <div className="text-zinc-500 text-xs">对方报价</div>
                     <div className={`text-base font-bold mt-0.5 ${isAffordable ? 'text-amber-400' : 'text-zinc-500'}`}>
                       {formatCurrency(c.currentAskPrice)}
                     </div>
                     {isBargained && (
-                      <div className="text-[10px] text-emerald-400 mt-0.5 font-sans animate-fade">
+                      <div className="text-xs text-emerald-400 mt-0.5 font-sans animate-fade">
                         已通过砍价折算
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <div className="text-zinc-500 text-[10px]">参考行情面值</div>
+                    <div className="text-zinc-500 text-xs">参考行情面值</div>
                     <div className="text-sm font-semibold text-zinc-300 mt-0.5">
                       {formatCurrency(targetEstimatedWorth)}
                     </div>
-                    <div className={`text-[10px] flex items-center gap-1 mt-0.5 ${isEstimatedProfitable ? "text-emerald-400" : "text-rose-400"}`}>
-                      {isEstimatedProfitable ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                    <div className={`text-xs flex items-center gap-1 mt-0.5 ${isEstimatedProfitable ? "text-emerald-400" : "text-rose-400"}`}>
+                      {isEstimatedProfitable ? <TrendingUp className="w-3" /> : <TrendingDown className="w-3" />}
                       <span>预估利差: {isEstimatedProfitable ? "+" : ""}{formatCurrency(profitEstimate)}</span>
                     </div>
                   </div>
@@ -311,7 +339,13 @@ export const MarketArea: React.FC<MarketAreaProps> = ({
                       }`}
                     >
                       <Coins className="w-4 h-4" />
-                      <span>{isAffordable ? `原价拿下 (${formatCurrency(c.currentAskPrice)})` : `现金不足 (还差 ${formatCurrency(c.currentAskPrice - state.cash)})`}</span>
+                      <span>
+                        {isAffordable
+                          ? (isBargained 
+                              ? `折后成交 (${formatCurrency(c.currentAskPrice)})` 
+                              : `原价收下 (${formatCurrency(c.currentAskPrice)})`)
+                          : `现金不足 (还差 ${formatCurrency(c.currentAskPrice - state.cash)})`}
+                      </span>
                     </button>
                   ) : (
                     <div className="text-center p-2 rounded bg-zinc-950 text-rose-500 font-semibold font-mono text-xs border border-rose-900/20">
@@ -320,7 +354,7 @@ export const MarketArea: React.FC<MarketAreaProps> = ({
                   )}
                   
                   {/* Small Action points requirement tip */}
-                  <div className="flex justify-between items-center text-[10px] text-zinc-500 px-1 font-mono">
+                  <div className="flex justify-between items-center text-xs text-zinc-500 px-1 font-mono">
                     <span>行动点：-1 ⚡</span>
                     <span>砍价限 {c.bargainedCount}/2 次</span>
                   </div>

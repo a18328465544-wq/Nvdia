@@ -13,10 +13,48 @@ import {
   CheckCircle, 
   Coins, 
   AlertTriangle,
-  HelpCircle
+  HelpCircle,
+  Truck,
+  ArrowRight,
+  Sparkles,
+  Package
 } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import { InventoryGpu, XianyuListing, XianyuBuyer, GameState } from "../types";
 import { formatCurrency, getConditionAttributes, generateXianyuBuyer } from "../utils";
+
+// A high-fidelity rolling digit ticker component for maximum arcade feel and gamified juice!
+const DigitalCounter: React.FC<{ value: number; duration?: number }> = ({ value, duration = 800 }) => {
+  const [count, setCount] = React.useState(0);
+
+  React.useEffect(() => {
+    let start = 0;
+    const end = Math.abs(value);
+    if (end === 0) return;
+
+    const incrementTime = 16; // ~60fps updates
+    const stepsCount = duration / incrementTime;
+    const step = Math.ceil(end / stepsCount);
+
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= end) {
+        clearInterval(timer);
+        setCount(end);
+      } else {
+        setCount(start);
+      }
+    }, incrementTime);
+
+    return () => clearInterval(timer);
+  }, [value, duration]);
+
+  return (
+    <span className="font-mono tabular-nums">
+      {value < 0 ? "-" : ""}¥{count.toLocaleString()}
+    </span>
+  );
+};
 
 interface XianyuAreaProps {
   state: GameState;
@@ -29,6 +67,25 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
   onConfirmSale,
   onDeductAction
 }) => {
+  // Live gamified click particles and overlay feedback states
+  const [activeEffects, setActiveEffects] = useState<Array<{
+    id: number;
+    x: number;
+    y: number;
+    text: string;
+    colorClass: string;
+    isCoin?: boolean;
+  }>>([]);
+
+  const [saleOverlay, setSaleOverlay] = useState<{
+    gpuName: string;
+    price: number;
+    isCrash: boolean;
+    buyerName: string;
+    repChange: number;
+    show: boolean;
+  } | null>(null);
+
   const [selectedGpuId, setSelectedGpuId] = useState<string>(() => {
     try {
       return localStorage.getItem("xianyu_selected_gpu_id") || "";
@@ -178,7 +235,7 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
   };
 
   // Handle buyer accept transaction
-  const handleAcceptTransaction = () => {
+  const handleAcceptTransaction = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (!currentOffer) return;
     const { gpu, buyer, listingPrice } = currentOffer;
     if (!buyer) return;
@@ -212,7 +269,7 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
     // Scenario: Scammer Buyer ("到手刀") with normal Card
     else if (buyer.kind === "到手刀骗子") {
       // Scammer will complain even if card is 100% fine!
-      if (gpu.testResult !== "未检测" && gpu.testResult === "正常") {
+      if (gpu.isTested && gpu.testResult === "正常") {
         // Player has proof!
         repChange = 3; // secure rep because you stood your ground
         logMsg = `【识破骗子】闲鱼“到手刀”想要挑刺：抱怨说风扇声响、要求返款300。你当场晒出口碑极佳的“专业双烤烤机绿标检测报告”！对方哑口无言，只好确认收货！信誉 +3！`;
@@ -230,7 +287,68 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
       logMsg = `【诚实守信】你如实标注了二手微疵/暗病。买家 ${buyer.name} 认可成色并满意认购，爽快付款了 ${formatCurrency(transactionPrice)}。`;
     }
 
+    // Get click coordinates relative to button or container
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    // Trigger visual effects particles
+    const freshEffects: typeof activeEffects = [];
+    const timestamp = Date.now();
+
+    // Main Floating +Amount
+    freshEffects.push({
+      id: timestamp,
+      x: clickX,
+      y: clickY - 45,
+      text: isCrash ? `-¥${Math.abs(transactionPrice).toLocaleString()} 罚!` : `+¥${transactionPrice.toLocaleString()}`,
+      colorClass: isCrash ? "text-rose-500 font-black text-2xl drop-shadow-[0_2px_8px_rgba(244,63,94,0.6)]" : "text-emerald-400 font-extrabold text-3xl drop-shadow-[0_2px_12px_rgba(16,185,129,0.7)]"
+    });
+
+    // Reputation adjustment floating info
+    freshEffects.push({
+      id: timestamp + 1,
+      x: clickX + 45,
+      y: clickY - 60,
+      text: repChange >= 0 ? `+${repChange} 信誉 ⭐` : `${repChange} 信誉 ⚠️`,
+      colorClass: repChange >= 0 ? "text-amber-400 font-bold text-sm" : "text-rose-400 font-bold text-sm"
+    });
+
+    // Scatter 8 flying icons
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2 + (Math.random() * 0.4 - 0.2);
+      const dist = 30 + Math.random() * 45;
+      freshEffects.push({
+        id: timestamp + 2 + i,
+        x: clickX + Math.cos(angle) * dist,
+        y: clickY + Math.sin(angle) * dist,
+        text: isCrash ? "💥" : Math.random() < 0.5 ? "🪙" : "🚀",
+        colorClass: "text-lg",
+        isCoin: true
+      });
+    }
+
+    setActiveEffects(prev => [...prev, ...freshEffects]);
+
+    // Setup beautiful shipping package driving overlay screen
+    setSaleOverlay({
+      gpuName: gpu.name,
+      price: transactionPrice,
+      isCrash,
+      buyerName: buyer.name,
+      repChange,
+      show: true
+    });
+
+    // Trigger state confirm transition
     onConfirmSale(gpu.id, transactionPrice, repChange, logMsg, isCrash);
+
+    // Keep active particles alive for 1.2s then fade
+    setTimeout(() => {
+      setActiveEffects(prev => prev.filter(ef => ef.id < timestamp || ef.id > timestamp + 15));
+    }, 1200);
+
+    // Ready for the next list
     setCurrentOffer(null);
     setNegotiation(null);
   };
@@ -294,7 +412,7 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
     } 
     else if (strategy === "proof") {
       // Running benchmark proof
-      if (gpu.testResult !== "未检测") {
+      if (gpu.isTested) {
         // High success if pre-tested! 90% success rate
         if (roll < 88) {
           const diff = listingPrice - currentPrice;
@@ -330,15 +448,170 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
   };
 
   return (
-    <div id="xianyu-resale-panel" className="space-y-6">
+    <div id="xianyu-resale-panel" className="space-y-6 relative">
       
+      {/* Floating Particles and floating +¥ text */}
+      {activeEffects.map((item) => (
+        <motion.div
+          key={item.id}
+          initial={{ opacity: 1, scale: 0.6, x: item.x, y: item.y }}
+          animate={{
+            opacity: 0,
+            scale: [0.6, 1.4, 0.9],
+            x: item.x + (Math.random() * 60 - 30),
+            y: item.y - 120, // Float upwards
+          }}
+          transition={{ duration: 1.1, ease: "easeOut" }}
+          className={`absolute pointer-events-none z-50 select-none ${item.colorClass}`}
+          style={{ transform: "translate(-50%, -50%)" }}
+        >
+          {item.text}
+        </motion.div>
+      ))}
+
+      {/* High-Fidelity Transaction Success Overlay Banner */}
+      <AnimatePresence>
+        {saleOverlay && saleOverlay.show && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 font-sans"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 30 }}
+              animate={{ scale: 1, y: 0, transition: { type: "spring", damping: 20 } }}
+              exit={{ scale: 0.95, y: -20, opacity: 0 }}
+              className="w-full max-w-lg bg-zinc-950 border border-zinc-800 rounded-3xl p-6 shadow-2xl relative overflow-hidden"
+            >
+              {/* Grid Background Effect */}
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-950/20 via-zinc-950/40 to-zinc-950/90 pointer-events-none" />
+
+              {/* Top status bar */}
+              <div className="flex justify-between items-center text-xs text-zinc-500 font-mono relative z-10">
+                <span>SHIPMENT ID: #XU-{Math.floor(Math.random() * 90000 + 10000)}</span>
+                <span className="text-emerald-400 font-bold flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 animate-pulse" /> 已确认发货
+                </span>
+              </div>
+
+              {/* Hero Header with checkmark or error splash */}
+              <div className="text-center py-6 space-y-2 relative z-10">
+                <motion.div
+                  initial={{ scale: 0.3 }}
+                  animate={{ scale: [0.3, 1.2, 1], rotate: [0, 10, 0] }}
+                  transition={{ delay: 0.15, type: "spring" }}
+                  className="mx-auto w-16 h-16 rounded-full flex items-center justify-center"
+                >
+                  {saleOverlay.isCrash ? (
+                    <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-3xl">
+                      ⚠️
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                      <CheckCircle className="w-9 h-9 animate-bounce" />
+                    </div>
+                  )}
+                </motion.div>
+
+                <h3 className={`text-xl font-black ${saleOverlay.isCrash ? 'text-rose-400' : 'text-emerald-400'}`}>
+                  {saleOverlay.isCrash ? "闲鱼买家发起投诉/退款" : "闲鱼极速打包发货！"}
+                </h3>
+                <p className="text-xs text-zinc-400">
+                  {saleOverlay.isCrash ? "售后质控失控，资金账务返还拦截" : `显卡已递交特快专递，买家 @${saleOverlay.buyerName} 准备签收`}
+                </p>
+              </div>
+
+              {/* Animated Express Delivery Truck Scene */}
+              {!saleOverlay.isCrash && (
+                <div className="relative h-14 bg-zinc-900/50 rounded-xl border border-zinc-900/80 overflow-hidden px-4 flex items-center sm:relative z-10">
+                  {/* Road centerline */}
+                  <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[1px] border-t border-dashed border-zinc-800/80" />
+                  
+                  {/* Origin Card Icon */}
+                  <motion.div
+                    initial={{ scale: 1 }}
+                    animate={{ scale: [1, 0, 0] }}
+                    transition={{ duration: 1.2, delay: 0.2 }}
+                    className="absolute left-6 text-xl"
+                  >
+                    📟
+                  </motion.div>
+
+                  {/* SF Truck driving across */}
+                  <motion.div
+                    initial={{ x: "-20%", opacity: 0 }}
+                    animate={{ 
+                      x: ["0%", "50%", "105%"],
+                      opacity: [0, 1, 1, 0],
+                    }}
+                    transition={{ 
+                      duration: 2.2, 
+                      ease: "easeInOut",
+                      repeat: 0
+                    }}
+                    className="absolute left-0 flex items-center gap-1.5 text-xs text-emerald-400 font-bold"
+                  >
+                    <Truck className="w-5 h-5 text-emerald-400" />
+                    <span className="bg-emerald-950 border border-emerald-800 px-1 rounded text-[10px]">SF EXPRESS</span>
+                  </motion.div>
+
+                  {/* Destination Package Icon */}
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: [0, 0, 1.2, 1] }}
+                    transition={{ duration: 1.6, delay: 1.2 }}
+                    className="absolute right-6 text-xl"
+                  >
+                    📦
+                  </motion.div>
+                </div>
+              )}
+
+              {/* Transaction Statement ledger details */}
+              <div className="p-4 bg-zinc-900/30 rounded-2xl border border-zinc-900/50 space-y-3 relative z-10 font-sans">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-zinc-500">已售商品:</span>
+                  <span className="text-xs font-bold text-zinc-300">{saleOverlay.gpuName}</span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-zinc-500">商户信用变动:</span>
+                  <span className={`text-xs font-bold ${saleOverlay.repChange >= 0 ? "text-indigo-400" : "text-rose-500"}`}>
+                    {saleOverlay.repChange >= 0 ? `+${saleOverlay.repChange}` : saleOverlay.repChange} 分 CP
+                  </span>
+                </div>
+
+                <div className="border-t border-zinc-900 my-2 pt-2 flex justify-between items-center">
+                  <span className="text-xs text-zinc-400 font-bold">最终清算金额:</span>
+                  <span className={`text-lg font-black ${saleOverlay.isCrash ? "text-rose-400" : "text-emerald-400"}`}>
+                    <DigitalCounter value={saleOverlay.price} duration={1200} />
+                  </span>
+                </div>
+              </div>
+
+              {/* Interaction button footer */}
+              <div className="pt-4 flex justify-center relative z-10">
+                <button
+                  id="btn-close-sale-overlay"
+                  onClick={() => setSaleOverlay(null)}
+                  className="w-full py-3 rounded-xl bg-zinc-900 hover:bg-zinc-850 text-xs font-bold text-zinc-300 hover:text-white transition text-center border border-zinc-800 cursor-pointer"
+                >
+                  继续卖卡 (返回二手柜台)
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Banner */}
       <div id="xianyu-welcome-banner" className="bg-zinc-900/30 p-4 rounded-xl border border-zinc-800/80 space-y-1">
-        <h2 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
+        <h2 className="typo-title-md flex items-center gap-2">
           <ShoppingBag className="text-amber-400 w-5 h-5 animate-pulse" />
           闲鱼上架大厅：挂价及出货
         </h2>
-        <p className="text-xs text-zinc-400">
+        <p className="typo-body-regular">
           在这里出售你积攒的货品。你可以针对现金急需度调整挂牌价：可以快速出清、也可以稳赚面值、更可以当黄牛溢价挂，全看运气和信誉！
         </p>
       </div>
@@ -346,7 +619,7 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
       {/* Main Listing Interactive Interface */}
       {!currentOffer ? (
         <div id="xianyu-form-card" className="border border-zinc-800 bg-zinc-900/10 rounded-2xl p-6 space-y-5">
-          <h3 className="text-sm font-bold text-zinc-200">上架宝贝配置</h3>
+          <h3 className="typo-title-sm text-zinc-200">上架宝贝配置</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 font-sans">
             {/* Left box: dropdown */}
@@ -367,7 +640,7 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
                   const condAttrs = getConditionAttributes(gpu.condition);
                   return (
                     <option key={gpu.id} value={gpu.id}>
-                      {gpu.name} (SN: {gpu.sn.slice(-4)}) | 成本: ¥{gpu.boughtPrice} | {gpu.condition} {gpu.testResult !== "未检测" ? " [已检测]" : " [未检测]" }
+                      {gpu.name} (SN: {gpu.sn.slice(-4)}) | 成本: ¥{gpu.boughtPrice} | {gpu.condition} {gpu.isTested ? " [已检测]" : " [未检测]" }
                     </option>
                   );
                 })}
@@ -391,8 +664,8 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
                       : "bg-zinc-900/40 text-zinc-500 border-zinc-800/80 hover:text-zinc-400 hover:border-zinc-700"
                   }`}
                 >
-                  <span className="text-[13px] font-extrabold text-emerald-400">快速变现</span>
-                  <span className="text-[9px] scale-90 text-zinc-500">低于市价 10% (易出手)</span>
+                  <span className="text-xs font-extrabold text-emerald-400">快速变现</span>
+                  <span className="text-xs text-zinc-500">九折急售 / 极易成交</span>
                 </button>
 
                 <button
@@ -405,8 +678,8 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
                       : "bg-zinc-900/40 text-zinc-500 border-zinc-800/80 hover:text-zinc-400 hover:border-zinc-700"
                   }`}
                 >
-                  <span className="text-[13px] font-extrabold text-indigo-400">行情挂价</span>
-                  <span className="text-[9px] scale-90 text-zinc-500">平进平出 100%市值</span>
+                  <span className="text-xs font-extrabold text-indigo-400">正常标价</span>
+                  <span className="text-xs text-zinc-500">市场估值 / 均等买家</span>
                 </button>
 
                 <button
@@ -415,51 +688,48 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
                   onClick={() => setListingMode("high")}
                   className={`p-2.5 rounded-lg text-xs font-semibold text-center border transition flex flex-col items-center justify-center gap-1 ${
                     listingMode === "high"
-                      ? "bg-amber-950/40 text-amber-400 border-amber-500/50 shadow-md"
+                      ? "bg-amber-950/40 text-amber-500 border-amber-500/50 shadow-md"
                       : "bg-zinc-900/40 text-zinc-500 border-zinc-800/80 hover:text-zinc-400 hover:border-zinc-700"
                   }`}
                 >
-                  <span className="text-[13px] font-extrabold text-amber-400">黄牛溢价</span>
-                  <span className="text-[9px] scale-90 text-zinc-500">加价 12% 赌接盘侠</span>
+                  <span className="text-xs font-extrabold text-amber-400">高进高出</span>
+                  <span className="text-xs text-zinc-500">溢价挂售 / 有缘人</span>
                 </button>
               </div>
             </div>
           </div>
 
-          <div className="border-t border-zinc-800/50 pt-4 flex justify-between items-center text-xs text-zinc-500">
-            <span className="flex items-center gap-1">
-              <HelpCircle className="w-3.5 h-3.5 text-zinc-600" />
-              <span>注意：发布后将消耗每天 1 次行动点数（行动点: -1 ⚡）</span>
-            </span>
+          {/* Price estimate guidance display & Publish Action button row */}
+          <div className="pt-4 border-t border-zinc-900 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 font-sans">
+            <div className="space-y-1">
+              <span className="text-xs text-zinc-500">预计闲鱼挂牌价调节:</span>
+              <p className="text-xs text-zinc-400">
+                系统将结合显卡物理折旧程度计算出基准估价，并按定价模式调节。
+              </p>
+            </div>
 
             <button
-              id="btn-list-submit"
+              id="btn-publish-listing"
               onClick={handleListForSale}
-              disabled={state.actionsLeft <= 0}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-zinc-950 font-extrabold text-xs tracking-wide shadow-lg active:scale-95 transition disabled:opacity-40"
+              className="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 text-xs font-black shadow-xl shrink-0 transition active:scale-95"
             >
-              立刻发布宝贝 ⚡
+              擦亮宝贝，上架闲鱼 (消耗 1 行动力) ⚡
             </button>
           </div>
         </div>
       ) : (
-        /* Dialogue result container of Xianyu listings */
-        <div id="xianyu-result-container" className="border border-zinc-800 bg-zinc-950 rounded-2xl p-6 space-y-6">
-          <div className="flex justify-between items-center pb-3 border-b border-zinc-900">
-            <div>
-              <div className="text-xs text-zinc-500 uppercase font-mono">宝贝发布状态反馈</div>
-              <h3 className="text-sm font-extrabold text-amber-400 mt-0.5">
-                已挂牌：{currentOffer.gpu.name} ({currentOffer.gpu.condition})
-              </h3>
+        <div id="xianyu-negotiation-card" className="border border-zinc-800 bg-zinc-900/10 rounded-2xl p-6 space-y-5">
+          <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 bg-emerald-500 rounded-full animate-ping" />
+              <h3 className="text-sm font-bold text-zinc-200">挂牌信息 & 实时拉扯对话</h3>
             </div>
             
-            <div className="text-right">
-              <span className="text-xs text-zinc-500">挂售价：</span>
-              <span className="text-sm font-bold font-mono text-zinc-300">{formatCurrency(currentOffer.listingPrice)}</span>
+            <div className="text-right font-mono text-xs text-zinc-500">
+              挂牌中: <span className="text-zinc-300 font-bold">{currentOffer.gpu.name}</span> | 底价 ¥{currentOffer.listingPrice}
             </div>
           </div>
 
-          {/* Buyer offer detail */}
           {currentOffer.buyer ? (
             <div className="space-y-4 font-sans">
               {/* Buyer info card with live negotiated price */}
@@ -469,7 +739,7 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-zinc-200">{currentOffer.buyer.name}</span>
-                      <span className="text-[10px] px-1 bg-indigo-950 text-indigo-300 rounded border border-indigo-900/30">
+                      <span className="text-xs px-1.5 py-0.5 bg-indigo-950 text-indigo-300 rounded border border-indigo-900/30">
                         {currentOffer.buyer.kind}
                       </span>
                     </div>
@@ -481,17 +751,17 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
                 </div>
 
                 <div className="text-right font-mono shrink-0 self-center">
-                  <span className="text-[10px] text-zinc-500 block">当前出价</span>
+                  <span className="text-xs text-zinc-500 block">当前出价</span>
                   <span className="text-base font-extrabold text-emerald-400">
                     {formatCurrency(negotiation ? negotiation.currentPrice : currentOffer.buyer.offerPrice)}
                   </span>
                   {negotiation && negotiation.currentPrice < currentOffer.listingPrice && (
-                    <span className="text-[10px] text-rose-400/80 block">
+                    <span className="text-xs text-rose-400/80 block">
                       (低于挂价 -{formatCurrency(currentOffer.listingPrice - negotiation.currentPrice)})
                     </span>
                   )}
                   {negotiation && negotiation.currentPrice >= currentOffer.listingPrice && (
-                    <span className="text-[10px] text-emerald-400 block font-bold">
+                    <span className="text-xs text-emerald-400 block font-bold">
                       (原价成交！)
                     </span>
                   )}
@@ -501,10 +771,10 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
               {/* INTERACTIVE NEGOTIATION CONSOLE */}
               {negotiation && (
                 <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-950/50 space-y-3 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-1.5 text-[9px] bg-zinc-900 border-l border-b border-zinc-800 text-zinc-500 font-mono">
+                  <div className="absolute top-0 right-0 px-2 py-1 text-xs bg-zinc-900 border-l border-b border-zinc-800 text-zinc-500 font-mono">
                     拉扯进度: {negotiation.attempts}/2 次
                   </div>
-                  <h4 className="text-xs font-bold text-zinc-400 flex items-center gap-1.5">
+                  <h4 className="text-xs font-bold text-zinc-400 flex items-center gap-1.5 border-b border-zinc-900 pb-1.5 mt-2">
                     <MessageCircle className="w-4 h-4 text-indigo-400" />
                     <span>买家拉扯现场</span>
                   </h4>
@@ -515,7 +785,7 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
                   {/* Bargain strategies selection (if attempts < 2 and not walkout) */}
                   {negotiation.stage !== "walkout" && negotiation.attempts < 2 && negotiation.currentPrice < currentOffer.listingPrice && (
                     <div className="space-y-2 pt-1">
-                      <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">选择反砍价战术：</div>
+                      <div className="text-xs text-zinc-500 font-bold uppercase tracking-wider">选择反砍价战术：</div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         {/* 1. 打感情牌 */}
                         <button
@@ -523,11 +793,11 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
                           onClick={() => handleCounterBargain("sincere")}
                           className="p-2 bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 hover:border-zinc-700 rounded-lg text-left transition space-y-0.5"
                         >
-                          <div className="text-xs font-bold text-zinc-200 flex items-center gap-1">
+                          <div className="text-xs font-bold text-zinc-200 flex items-center justify-between gap-1">
                             <span>打感情牌 🥺</span>
-                            <span className="text-[9px] px-1 bg-emerald-950 text-emerald-300 rounded text-normal">稳妥</span>
+                            <span className="text-xs px-1 bg-emerald-950 text-emerald-300 rounded text-normal font-sans font-medium">稳妥</span>
                           </div>
-                          <p className="text-[10px] text-zinc-500">
+                          <p className="text-xs text-zinc-500 leading-normal">
                             “大学生自用一手好卡...”
                           </p>
                         </button>
@@ -538,11 +808,11 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
                           onClick={() => handleCounterBargain("tough")}
                           className="p-2 bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 hover:border-zinc-700 rounded-lg text-left transition space-y-0.5"
                         >
-                          <div className="text-xs font-bold text-zinc-200 flex items-center gap-1">
+                          <div className="text-xs font-bold text-zinc-200 flex items-center justify-between gap-1">
                             <span>强硬对线 😤</span>
-                            <span className="text-[9px] px-1 bg-amber-950 text-amber-300 rounded text-normal">高额升值</span>
+                            <span className="text-xs px-1 bg-amber-950 text-amber-300 rounded text-normal font-sans font-medium">高额升值</span>
                           </div>
-                          <p className="text-[10px] text-zinc-500">
+                          <p className="text-xs text-zinc-500 leading-normal">
                             “爱买不买，防爆大雷卡...”
                           </p>
                         </button>
@@ -552,21 +822,21 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
                           type="button"
                           onClick={() => handleCounterBargain("proof")}
                           className={`p-2 border rounded-lg text-left transition space-y-0.5 ${
-                            currentOffer.gpu.testResult !== "未检测"
+                            currentOffer.gpu.isTested
                               ? "bg-indigo-950/20 border-indigo-800/60 hover:bg-indigo-950/30"
                               : "bg-zinc-900 hover:bg-zinc-850 border-zinc-800"
                           }`}
                         >
-                          <div className="text-xs font-bold text-zinc-200 flex items-center gap-1">
+                          <div className="text-xs font-bold text-zinc-200 flex items-center justify-between gap-1">
                             <span>亮出烤机图 📊</span>
-                            {currentOffer.gpu.testResult !== "未检测" ? (
-                              <span className="text-[9px] px-1 bg-indigo-900 text-indigo-200 rounded">已备证</span>
+                            {currentOffer.gpu.isTested ? (
+                              <span className="text-xs px-1.5 py-0.5 bg-indigo-900 text-indigo-200 rounded font-sans font-semibold">已备证</span>
                             ) : (
-                              <span className="text-[9px] px-1 bg-rose-950 text-rose-400 rounded">无数据!</span>
+                              <span className="text-xs px-1.5 py-0.5 bg-rose-950 text-rose-400 rounded font-sans font-semibold">无数据!</span>
                             )}
                           </div>
-                          <p className="text-[10px] text-zinc-500 font-mono">
-                            {currentOffer.gpu.testResult !== "未检测" ? "30分钟甜甜圈通过" : "未跑分双烤, 易惹嫌疑"}
+                          <p className="text-xs text-zinc-500 font-mono leading-normal">
+                            {currentOffer.gpu.isTested ? "30分钟甜甜圈通过" : "未跑分双烤, 易惹嫌疑"}
                           </p>
                         </button>
                       </div>
@@ -576,7 +846,7 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
               )}
 
               {/* Warnings regarding risk if untested etc. */}
-              {currentOffer.gpu.hasIssue && currentOffer.gpu.testResult === "未检测" && (
+              {currentOffer.gpu.hasIssue && !currentOffer.gpu.isTested && (
                 <div className="p-3.5 rounded-lg bg-orange-950/20 border border-orange-900/30 text-orange-400 text-xs flex items-start gap-2">
                   <AlertTriangle className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
                   <div>
@@ -619,7 +889,7 @@ export const XianyuArea: React.FC<XianyuAreaProps> = ({
 
                   <button
                     id="btn-confirm-sale"
-                    onClick={handleAcceptTransaction}
+                    onClick={(e) => handleAcceptTransaction(e)}
                     className="flex-1 py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-black text-center shadow-lg transition active:scale-95"
                   >
                     成交！当场打包发货 🚚

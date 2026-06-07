@@ -176,7 +176,7 @@ export const AfterSalesModal: React.FC<AfterSalesModalProps> = ({
       <div id="aftersales-dispute-card" className="bg-zinc-950 border-2 border-rose-600/30 max-w-lg w-full rounded-3xl p-6.5 space-y-6 shadow-[0_0_50px_rgba(225,29,72,0.15)] animate-zoomIn relative">
         
         {/* Glowing header indicators */}
-        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-rose-600 text-zinc-950 font-black font-mono px-4 py-1 rounded-full text-[10px] tracking-widest flex items-center gap-1 shadow-md uppercase">
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-rose-600 text-zinc-950 font-black font-mono px-4 py-1 rounded-full text-xs tracking-widest flex items-center gap-1 shadow-md uppercase">
           <AlertTriangle className="w-3.5 h-3.5 animate-bounce" />
           <span>售后纠纷拦截处理</span>
         </div>
@@ -187,14 +187,14 @@ export const AfterSalesModal: React.FC<AfterSalesModalProps> = ({
             <div className="flex items-center gap-3.5 border-b border-zinc-900 pb-4">
               <span className="text-4xl filter drop-shadow">{dispute.avatar}</span>
               <div>
-                <h3 className="text-zinc-100 font-extrabold text-sm">{dispute.customerName} - 售后维权申诉中</h3>
-                <p className="text-[10px] text-zinc-500 font-mono">涉及产品：<span className="text-zinc-300 font-bold">{dispute.complaintGpu}</span></p>
+                <h3 className="typo-title-sm text-zinc-100">{dispute.customerName} - 售后维权申诉中</h3>
+                <p className="typo-mono-tiny">涉及产品：<span className="text-zinc-300 font-bold">{dispute.complaintGpu}</span></p>
               </div>
             </div>
 
             {/* Simulated Chat Message Bubble */}
             <div className="bg-rose-950/20 border border-rose-900/30 rounded-2xl p-4 text-xs text-rose-300 leading-relaxed font-sans shadow-inner relative">
-              <div className="absolute -top-2 left-6 bg-zinc-950 px-2 text-[10px] text-rose-400 font-mono font-bold">📢 维权买家控诉原声：</div>
+              <div className="absolute -top-2 left-6 bg-zinc-950 px-2 text-xs text-rose-400 font-mono font-bold">📢 维权买家控诉原声：</div>
               <p className="italic">“{dispute.message}”</p>
             </div>
 
@@ -202,16 +202,16 @@ export const AfterSalesModal: React.FC<AfterSalesModalProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="border border-zinc-800 rounded-xl p-4 bg-zinc-900/30 space-y-3.5 flex flex-col justify-between">
                 <div className="space-y-1">
-                  <h4 className="text-xs font-bold text-teal-400 flex items-center gap-1 font-sans">
+                  <h4 className="typo-title-xs text-teal-400 flex items-center gap-1">
                     <DollarSign className="w-4 h-4 text-teal-400" />
                     方案一：破财消灾
                   </h4>
-                  <p className="text-[11px] text-zinc-400 leading-relaxed">
+                  <p className="text-xs text-zinc-400 leading-relaxed">
                     向其全额退款补偿 <strong className="text-zinc-200">¥{dispute.refundCost}</strong>。快速解决纠纷。
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <div className="flex justify-between text-[11px] font-mono text-zinc-500 border-t border-zinc-900 pt-2 shrink-0">
+                  <div className="flex justify-between text-xs font-mono text-zinc-500 border-t border-zinc-900 pt-2 shrink-0">
                     <span>信誉改变量:</span>
                     <span className="text-emerald-400 font-bold">+6 信誉 (温和回升)</span>
                   </div>
@@ -229,16 +229,16 @@ export const AfterSalesModal: React.FC<AfterSalesModalProps> = ({
               {/* Option B: Repair details */}
               <div className="border border-rose-900/10 rounded-xl p-4 bg-zinc-900/30 space-y-3.5 flex flex-col justify-between">
                 <div className="space-y-1">
-                  <h4 className="text-xs font-bold text-amber-400 flex items-center gap-1">
+                  <h4 className="typo-title-xs text-amber-400 flex items-center gap-1">
                     <Wrench className="w-4 h-4 text-amber-400" />
                     方案二：保修翻修挑战
                   </h4>
-                  <p className="text-[11px] text-zinc-400 leading-relaxed">
+                  <p className="text-xs text-zinc-400 leading-relaxed">
                     扣除本天 <strong className="text-zinc-200">1点</strong> 额外行动时间，买家强制要求你帮他清灰/换硅脂进行<strong>保修</strong>！
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <div className="flex justify-between text-[11px] font-mono text-zinc-500 border-t border-zinc-900 pt-2 shrink-0">
+                  <div className="flex justify-between text-xs font-mono text-zinc-500 border-t border-zinc-900 pt-2 shrink-0">
                     <span>保修工本材料:</span>
                     <span className="text-red-400 font-bold">¥{dispute.materialsFee} 辅料费</span>
                   </div>
@@ -285,7 +285,7 @@ export const AfterSalesModal: React.FC<AfterSalesModalProps> = ({
             {/* Sub-game 1: Fan dust spots click */}
             {dispute.gameType === "dust" ? (
               <div className="space-y-2">
-                <div className="text-[11px] text-zinc-400 italic">【超声波气吹清灰】连续点击风扇上的黄色陈年灰尘疙瘩并予以吹散！</div>
+                <div className="text-xs text-zinc-400 italic">【超声波气吹清灰】连续点击风扇上的黄色陈年灰尘疙瘩并予以吹散！</div>
                 <div className="h-44 w-full bg-zinc-900/40 border border-zinc-800/60 rounded-xl relative overflow-hidden flex items-center justify-center">
                   
                   {/* Decorative rotative ventilators */}
@@ -313,7 +313,7 @@ export const AfterSalesModal: React.FC<AfterSalesModalProps> = ({
                       }`}
                     >
                       {!spot.cleaned && (
-                        <span className="text-[9px] font-black text-amber-200">💨</span>
+                        <span className="text-xs font-black text-amber-200">💨</span>
                       )}
                     </button>
                   ))}
@@ -322,11 +322,11 @@ export const AfterSalesModal: React.FC<AfterSalesModalProps> = ({
             ) : (
               /* Sub-game 2: Liquid metal paste nodes click */
               <div className="space-y-2">
-                <div className="text-[11px] text-zinc-400 italic">【固态硅脂均匀敷设】依次精密点击所有高发热区域让导热垫完美贴紧：</div>
+                <div className="text-xs text-zinc-400 italic">【固态硅脂均匀敷设】依次精密点击所有高发热区域让导热垫完美贴紧：</div>
                 <div className="h-44 w-full bg-zinc-900/40 border border-zinc-800/60 rounded-xl relative overflow-hidden flex items-center justify-center">
                   
                   <div className="absolute inset-14 border border-teal-500/10 bg-zinc-950 rounded pointer-events-none flex flex-col items-center justify-center">
-                    <div className="text-[8px] font-mono text-zinc-600 tracking-wider">SILICON CHIP DIE</div>
+                    <div className="text-xs font-mono text-zinc-600 tracking-wider">SILICON CHIP DIE</div>
                   </div>
 
                   {pasteNodes.map((node) => (
@@ -339,7 +339,7 @@ export const AfterSalesModal: React.FC<AfterSalesModalProps> = ({
                         left: `${node.x}%`,
                         top: `${node.y}%`,
                       }}
-                      className={`absolute -translate-x-1/2 -translate-y-1/2 px-2 py-1 rounded-md text-[8px] font-mono border font-extrabold shadow-sm transition-all duration-300 ${
+                      className={`absolute -translate-x-1/2 -translate-y-1/2 px-2 py-1 rounded-md text-xs font-mono border font-extrabold shadow-sm transition-all duration-300 ${
                         node.pasted
                           ? "bg-teal-950/60 text-teal-400 border-teal-500/40"
                           : "bg-zinc-800 border-zinc-600 hover:border-teal-500 hover:text-zinc-200"
@@ -362,13 +362,13 @@ export const AfterSalesModal: React.FC<AfterSalesModalProps> = ({
             </div>
             
             <div className="space-y-1.5">
-              <h3 className="text-zinc-100 font-black text-sm tracking-widest uppercase">工匠绝活：售后完美修复！</h3>
-              <p className="text-xs text-zinc-400 leading-relaxed max-w-sm mx-auto">
+              <h3 className="typo-title-sm text-zinc-100 uppercase">工匠绝活：售后完美修复！</h3>
+              <p className="typo-body-regular max-w-sm mx-auto">
                 你靠着电脑台前的绝顶技艺，完美完成了这次免费的售后抢修调试！买家测试后彻底折服，不再追索任何退款。
               </p>
             </div>
 
-            <div className="bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 max-w-xs mx-auto space-y-1.5 text-[11px] font-mono">
+            <div className="bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 max-w-xs mx-auto space-y-1.5 text-xs font-mono">
               <div className="flex justify-between">
                 <span className="text-zinc-500">保修辅料花费:</span>
                 <span className="text-red-400 font-bold">-¥{dispute.materialsFee}</span>
@@ -403,13 +403,13 @@ export const AfterSalesModal: React.FC<AfterSalesModalProps> = ({
             </div>
             
             <div className="space-y-1.5">
-              <h3 className="text-zinc-100 font-black text-sm tracking-widest uppercase">彻底完蛋：保修砸了招牌！</h3>
-              <p className="text-xs text-zinc-400 leading-relaxed max-w-xs mx-auto">
+              <h3 className="typo-title-sm text-zinc-100 uppercase">彻底完蛋：保修砸了招牌！</h3>
+              <p className="typo-body-regular max-w-xs mx-auto">
                 你折腾半天却由于焊锡不精或除尘超时搞毁了电路，让本就生气的买家认为你在耍滑头，当众拉横幅对你无情指责！
               </p>
             </div>
 
-            <div className="bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 max-w-xs mx-auto space-y-1.5 text-[11px] font-mono">
+            <div className="bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 max-w-xs mx-auto space-y-1.5 text-xs font-mono">
               <div className="flex justify-between">
                 <span className="text-zinc-500">强制交纳和事款:</span>
                 <span className="text-red-400 font-bold">-¥{Math.round(dispute.refundCost * 0.4)}</span>

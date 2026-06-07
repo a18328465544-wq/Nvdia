@@ -16,7 +16,8 @@ import {
   Activity, 
   TrendingUp, 
   AlertTriangle,
-  BadgeInfo
+  BadgeInfo,
+  Trophy
 } from "lucide-react";
 import { GameLog } from "../types";
 
@@ -30,6 +31,19 @@ export const StatsLogs: React.FC<StatsLogsProps> = ({ logs }) => {
   const getLogCategory = (log: GameLog) => {
     const text = log.text;
     const type = log.type;
+
+    // 0. Achievement check (成就解锁) - high precedence
+    if (type === "achievement" || text.includes("【成就：")) {
+      return {
+        category: "achievement" as const,
+        label: "品牌成就",
+        badgeClass: "bg-amber-500/20 border-amber-500/40 text-amber-400 font-extrabold text-[10px] sm:text-xs px-1.5 py-0.5 rounded border uppercase tracking-wider animate-pulse",
+        cardClass: "border-amber-500/40 bg-amber-950/10 text-zinc-200 hover:border-amber-400/60 hover:bg-amber-950/20 shadow-[inset_0_0_12px_rgba(245,158,11,0.08)]",
+        iconClass: "text-amber-400 p-1 bg-amber-950/40 border border-amber-900/40 rounded-lg animate-pulse",
+        dayClass: "text-amber-400 bg-amber-950/40 border-amber-900/40 font-black",
+        timeClass: "text-amber-500/50"
+      };
+    }
 
     // 1. Catastrophic / Severe Loss (惨败 / 爆雷 / 物理冒烟 / 纠纷)
     if (
@@ -50,7 +64,7 @@ export const StatsLogs: React.FC<StatsLogsProps> = ({ logs }) => {
       return {
         category: "disaster" as const,
         label: "物理爆雷",
-        badgeClass: "bg-red-500/10 border-red-500/30 text-rose-400 font-bold text-[9px] px-1.5 py-0.5 rounded border uppercase tracking-wider animate-pulse",
+        badgeClass: "bg-red-500/10 border-red-500/30 text-rose-400 font-bold text-[10px] sm:text-xs px-1.5 py-0.5 rounded border uppercase tracking-wider animate-pulse",
         cardClass: "border-rose-500/30 bg-rose-950/10 text-zinc-200 hover:border-rose-500/60 hover:bg-rose-950/20 shadow-[inset_0_0_12px_rgba(239,68,68,0.08)]",
         iconClass: "text-rose-500 p-1 bg-red-950/40 border border-red-900/30 rounded-lg",
         dayClass: "text-rose-400 bg-rose-950/40 border-rose-900/40 font-black",
@@ -74,9 +88,9 @@ export const StatsLogs: React.FC<StatsLogsProps> = ({ logs }) => {
       return {
         category: "victory" as const,
         label: "史诗大捷",
-        badgeClass: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-bold text-[9px] px-1.5 py-0.5 rounded border uppercase tracking-wider",
+        badgeClass: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-bold text-[10px] sm:text-xs px-1.5 py-0.5 rounded border uppercase tracking-wider",
         cardClass: "border-emerald-500/30 bg-emerald-950/10 text-zinc-100 hover:border-emerald-500/50 hover:bg-emerald-950/15 shadow-[0_0_10px_rgba(16,185,129,0.03)_inset]",
-        iconClass: "text-emerald-400 p-1 bg-emerald-950/40 border border-emerald-900/30 rounded-lg animate-bounce-slow",
+        iconClass: "text-emerald-400 p-1 bg-emerald-950/40 border border-emerald-900/30 rounded-lg",
         dayClass: "text-emerald-400 bg-emerald-950/40 border-emerald-900/40 font-black",
         timeClass: "text-emerald-500/50"
       };
@@ -97,7 +111,7 @@ export const StatsLogs: React.FC<StatsLogsProps> = ({ logs }) => {
       return {
         category: "event" as const,
         label: "大盘异动",
-        badgeClass: "bg-purple-500/10 border-purple-500/30 text-purple-400 font-bold text-[9px] px-1.5 py-0.5 rounded border uppercase tracking-wider",
+        badgeClass: "bg-purple-500/10 border-purple-500/30 text-purple-400 font-bold text-[10px] sm:text-xs px-1.5 py-0.5 rounded border uppercase tracking-wider",
         cardClass: "border-purple-500/30 bg-purple-950/10 text-zinc-200 hover:border-purple-400/50 hover:bg-purple-950/15 shadow-[0_0_12px_rgba(168,85,247,0.03)_inset]",
         iconClass: "text-purple-400 p-1 bg-purple-950/40 border border-purple-900/30 rounded-lg",
         dayClass: "text-purple-400 bg-purple-950/40 border-purple-900/40 font-black",
@@ -109,7 +123,7 @@ export const StatsLogs: React.FC<StatsLogsProps> = ({ logs }) => {
     return {
       category: "routine" as const,
       label: "本地业务",
-      badgeClass: "bg-zinc-800/40 border-zinc-700/30 text-zinc-400 text-[9px] px-1.5 py-0.5 rounded border uppercase tracking-wider",
+      badgeClass: "bg-zinc-800/40 border-zinc-700/30 text-zinc-400 text-[10px] sm:text-xs px-1.5 py-0.5 rounded border uppercase tracking-wider",
       cardClass: "border-zinc-900 bg-zinc-950/60 text-zinc-300 hover:border-zinc-800 hover:bg-zinc-900/20",
       iconClass: "text-indigo-400 p-1 bg-indigo-950/20 border border-indigo-900/10 rounded-lg",
       dayClass: "text-zinc-400 bg-zinc-900 border-zinc-800 font-bold",
@@ -118,7 +132,7 @@ export const StatsLogs: React.FC<StatsLogsProps> = ({ logs }) => {
   };
 
   // Compute live logger dashboard statistics
-  const countByCategory = (cat: "disaster" | "victory" | "event" | "routine") => {
+  const countByCategory = (cat: "disaster" | "victory" | "event" | "routine" | "achievement") => {
     return logs.filter(l => getLogCategory(l).category === cat).length;
   };
 
@@ -127,11 +141,14 @@ export const StatsLogs: React.FC<StatsLogsProps> = ({ logs }) => {
   const numVictories = countByCategory("victory");
   const numEvents = countByCategory("event");
   const numRoutines = countByCategory("routine");
+  const numAchievements = countByCategory("achievement");
 
-  const renderCategoryIcon = (category: "disaster" | "victory" | "event" | "routine") => {
+  const renderCategoryIcon = (category: "disaster" | "victory" | "event" | "routine" | "achievement") => {
     switch (category) {
       case "disaster":
         return <Flame className="w-3.5 h-3.5" />;
+      case "achievement":
+        return <Trophy className="w-3.5 h-3.5" />;
       case "victory":
         return <Coins className="w-3.5 h-3.5" />;
       case "event":
@@ -149,39 +166,44 @@ export const StatsLogs: React.FC<StatsLogsProps> = ({ logs }) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Terminal className="w-4 h-4 text-purple-400 animate-pulse" />
-            <h3 className="text-xs font-black uppercase tracking-widest text-zinc-200 font-mono">
+            <h3 className="typo-title-xs text-zinc-200 font-mono">
               华强北秘密商战实录
             </h3>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-ping" />
-            <span className="text-[9px] text-emerald-400 font-mono tracking-widest uppercase">
+            <span className="text-xs text-emerald-400 font-mono tracking-widest uppercase">
               LIVE MONITOR
             </span>
           </div>
         </div>
 
         {/* 📊 Live Terminal Statistics Feed (High-fidelity monitor look) */}
-        <div id="logs-monitor-statistics" className="grid grid-cols-4 gap-1.5 pt-1.5 font-mono text-[9px] border-t border-zinc-900/50">
+        <div id="logs-monitor-statistics" className="grid grid-cols-5 gap-1 pt-1.5 font-mono text-[9px] sm:text-xs border-t border-zinc-900/50 text-center">
           
-          <div className="p-1 px-2 rounded bg-emerald-950/15 border border-emerald-900/20 flex flex-col items-center">
+          <div className="p-1 px-1 rounded bg-emerald-950/15 border border-emerald-900/20 flex flex-col items-center">
             <span className="text-emerald-500 font-black">大捷 • {numVictories}</span>
-            <span className="text-[7px] text-emerald-600">VICTORY</span>
+            <span className="text-[8px] sm:text-[9px] text-emerald-600 scale-90">VICTORY</span>
           </div>
 
-          <div className="p-1 px-2 rounded bg-red-950/15 border border-red-900/20 flex flex-col items-center">
+          <div className="p-1 px-1 rounded bg-amber-950/15 border border-amber-900/25 flex flex-col items-center">
+            <span className="text-amber-400 font-black">成就 • {numAchievements}</span>
+            <span className="text-[8px] sm:text-[9px] text-amber-500 scale-90">AWARD</span>
+          </div>
+
+          <div className="p-1 px-1 rounded bg-red-950/15 border border-red-900/20 flex flex-col items-center">
             <span className="text-rose-500 font-black">爆雷 • {numDisasters}</span>
-            <span className="text-[7px] text-rose-600">CRITICAL</span>
+            <span className="text-[8px] sm:text-[9px] text-rose-600 scale-90">CRITICAL</span>
           </div>
 
-          <div className="p-1 px-2 rounded bg-purple-950/15 border border-purple-900/20 flex flex-col items-center">
+          <div className="p-1 px-1 rounded bg-purple-950/15 border border-purple-900/20 flex flex-col items-center">
             <span className="text-purple-400 font-black">异动 • {numEvents}</span>
-            <span className="text-[7px] text-purple-600">EVENTS</span>
+            <span className="text-[8px] sm:text-[9px] text-purple-600 scale-90">EVENTS</span>
           </div>
 
-          <div className="p-1 px-2 rounded bg-zinc-900/30 border border-zinc-800/50 flex flex-col items-center">
+          <div className="p-1 px-1 rounded bg-zinc-900/30 border border-zinc-800/50 flex flex-col items-center">
             <span className="text-zinc-400 font-black">日常 • {numRoutines}</span>
-            <span className="text-[7px] text-zinc-500">ROUTINE</span>
+            <span className="text-[8px] sm:text-[9px] text-zinc-500 scale-90">ROUTINE</span>
           </div>
 
         </div>
@@ -195,8 +217,8 @@ export const StatsLogs: React.FC<StatsLogsProps> = ({ logs }) => {
         {totalLogs === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-zinc-650 italic py-16 text-center space-y-2">
             <Activity className="w-6 h-6 text-zinc-800 animate-pulse" />
-            <span className="text-[11px] font-mono tracking-wider text-zinc-500">主板总线监听器已就绪</span>
-            <p className="text-[10px] text-zinc-600 font-sans px-4">
+            <span className="text-xs font-mono tracking-wider text-zinc-500">主板总线监听器已就绪</span>
+            <p className="text-xs text-zinc-600 font-sans px-4">
               未检测到任何市场风波，拉客或购买显卡后即可在此监听详细事务日志！
             </p>
           </div>
@@ -217,9 +239,9 @@ export const StatsLogs: React.FC<StatsLogsProps> = ({ logs }) => {
                 
                 <div className="flex-1 space-y-1">
                   {/* Meta tag line */}
-                  <div className="flex items-center justify-between font-mono text-[9px]">
-                    <div className="flex items-center gap-1.5 text-zinc-500">
-                      <span className={`px-1 py-0.2 rounded text-[8px] font-bold ${config.dayClass}`}>
+                  <div className="flex items-center justify-between font-mono text-xs">
+                    <div className="flex items-center gap-1.5 text-zinc-500 font-bold">
+                      <span className={`px-1 py-0.2 rounded text-xs font-black ${config.dayClass}`}>
                         DAY {String(log.day).padStart(2, "0")}
                       </span>
                       <span>•</span>
@@ -232,7 +254,7 @@ export const StatsLogs: React.FC<StatsLogsProps> = ({ logs }) => {
                   </div>
                   
                   {/* Message body */}
-                  <p className="text-zinc-200 leading-relaxed text-[11px] font-sans">
+                  <p className="text-zinc-200 leading-relaxed text-xs font-sans">
                     {log.text}
                   </p>
                 </div>
@@ -243,9 +265,9 @@ export const StatsLogs: React.FC<StatsLogsProps> = ({ logs }) => {
       </div>
 
       {/* Monitor Footer (Meme / Hardware Dealer Wisdom) */}
-      <div id="logs-footer-credit" className="mt-3 border-t border-zinc-900/60 pt-2.5 flex items-center justify-between text-[10px] text-zinc-650 font-mono">
-        <span className="text-[9px] text-zinc-500">BUS CAP: {totalLogs} LOGS REGISTERED</span>
-        <span className="text-[9px] text-zinc-500">VITE_DEV_CLOCK // 3000hz</span>
+      <div id="logs-footer-credit" className="mt-3 border-t border-zinc-900/60 pt-2.5 flex items-center justify-between text-xs text-zinc-650 font-mono">
+        <span className="text-xs text-zinc-500">BUS CAP: {totalLogs} LOGS REGISTERED</span>
+        <span className="text-xs text-zinc-500">VITE_DEV_CLOCK // 3000hz</span>
       </div>
 
     </div>

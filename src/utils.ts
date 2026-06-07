@@ -51,26 +51,42 @@ export function getConditionAttributes(condition: GpuCondition) {
 }
 
 // Create daily price table with random noise and current event factor
-export function generateDailyPrices(day: number, currentEvent: MarketEvent | null): Record<string, number> {
+export function generateDailyPrices(day: number, currentEvent: MarketEvent | null, previousPrices?: Record<string, number>): Record<string, number> {
   const prices: Record<string, number> = {};
   
   GPU_PRESETS.forEach(gpu => {
-    // Standard random noise: -5% to +5%
-    let noise = 1 + (Math.random() * 10 - 5) / 100;
+    // Determine the baseline price from previous price or fallback to basePrice
+    const lastPrice = (previousPrices && previousPrices[gpu.name]) ? previousPrices[gpu.name] : gpu.basePrice;
     
-    // High-end cards (4080, 4090, 5090) fluctuate more (-8% to +8%)
+    // Standard random noise: -4% to +4% (scaled sequentially from yesterday)
+    let noise = 1 + (Math.random() * 8 - 4) / 100;
+    
+    // High-end cards (4080, 4090, 5090) fluctuate more (-6% to +6%)
     if (gpu.basePrice >= 7000) {
-      noise = 1 + (Math.random() * 16 - 8) / 100;
+      noise = 1 + (Math.random() * 12 - 6) / 100;
+    }
+
+    // Mean reversion to prevent unbounded runaways
+    const ratio = lastPrice / gpu.basePrice;
+    if (ratio > 1.3) {
+      noise -= 0.015; // gently pull down when high
+    } else if (ratio < 0.7) {
+      noise += 0.015; // gently push up when low
     }
     
-    let baseWithNoise = gpu.basePrice * noise;
+    let nextPrice = lastPrice * noise;
     
     // Apply event modifiers if applicable
     if (currentEvent && currentEvent.affectGpus.includes(gpu.name)) {
-      baseWithNoise = baseWithNoise * currentEvent.priceShiftMultiplier;
+      nextPrice = nextPrice * currentEvent.priceShiftMultiplier;
     }
     
-    prices[gpu.name] = Math.round(baseWithNoise);
+    // Enforce safety bounded price limits
+    const minPrice = gpu.basePrice * 0.55;
+    const maxPrice = gpu.basePrice * 2.2;
+    nextPrice = Math.max(minPrice, Math.min(maxPrice, nextPrice));
+    
+    prices[gpu.name] = Math.round(nextPrice);
   });
   
   return prices;
@@ -115,25 +131,48 @@ export function generateRandomSeller(id: string, dailyPrices: Record<string, num
   // 3. Craft dynamic tailored backstory (includes specific card references & meme elements)
   const baseBackstoryTemplate = BACKSTORY_TEMPLATES[Math.floor(Math.random() * BACKSTORY_TEMPLATES.length)];
   const talk = baseBackstoryTemplate
-    .replace(/显卡/g, gpuPreset.name)
     .replace(/3090/g, gpuPreset.name)
     .replace(/4090/g, gpuPreset.name);
   
   // Pick defect type
   const defect = LATENT_DEFECTS[Math.floor(Math.random() * LATENT_DEFECTS.length)];
   
+  // Calculate specific non-duplicate customer trade attributes
+  let sellerKind = "日常退役";
+  if (condition === GpuCondition.BrandNew) {
+    const pool = ["抽奖欧皇", "富哥退烧", "渠道爆货"];
+    sellerKind = pool[Math.floor(Math.random() * pool.length)];
+  } else if (condition === GpuCondition.PersonalUse) {
+    const pool = ["日常搁置", "升级整机", "回血出坑"];
+    sellerKind = pool[Math.floor(Math.random() * pool.length)];
+  } else if (condition === GpuCondition.Miner) {
+    const pool = ["撤店倒闭", "整顿转型", "电费超标"];
+    sellerKind = pool[Math.floor(Math.random() * pool.length)];
+  } else if (condition === GpuCondition.Netbar) {
+    const pool = ["转营重组", "押金抵扣", "打包分装"];
+    sellerKind = pool[Math.floor(Math.random() * pool.length)];
+  } else if (condition === GpuCondition.Repaired) {
+    const pool = ["救砖玩家", "拼装高手", "改装大仙"];
+    sellerKind = pool[Math.floor(Math.random() * pool.length)];
+  } else if (condition === GpuCondition.Corpse) {
+    const pool = ["古董盲盒", "黑街摸金", "摆摊盲盒"];
+    sellerKind = pool[Math.floor(Math.random() * pool.length)];
+  }
+
   return {
     id,
     name,
     avatar,
-    condition,
+    kind: sellerKind, // Tailored personality attribute e.g. "改装大师" (no duplicate of condition)
     gpuName: gpuPreset.name,
-    currentAskPrice: askPrice,
+    condition,
+    askPrice,
     talk,
     hiddenRisk: hasIssue ? defect.desc : "一切正常",
     hasIssue,
     canBargain: true,
     bargainedCount: 0,
+    currentAskPrice: askPrice
   };
 }
 
@@ -290,7 +329,7 @@ export function generateXianyuBuyer(
   
   const chosenTemplate = availableBuyers[Math.floor(Math.random() * availableBuyers.length)];
   const rawTalk = chosenTemplate.talks[Math.floor(Math.random() * chosenTemplate.talks.length)];
-  const talk = rawTalk.replace(/显卡/g, gpu.name);
+  const talk = rawTalk;
   
   // Calculate final offer price from buyer
   let finalOffer = Math.round(listingPrice * chosenTemplate.offerModifier);
@@ -307,7 +346,7 @@ export function generateXianyuBuyer(
     hasBuyer: true,
     buyer: {
       id: buyerId,
-      name: `${name} (${chosenTemplate.kind})`,
+      name: name, // Clean name e.g. "图拉丁小金刚" without bracket duplicate
       avatar: buyerAvatar,
       kind: chosenTemplate.kind,
       gpuId: gpu.id,
@@ -358,7 +397,7 @@ export function initGameState(difficulty: "easy" | "normal" | "hard" = "normal")
   const defaultPrices = generateDailyPrices(1, null);
   const histories: Record<string, number[]> = {};
   GPU_PRESETS.forEach(gpu => {
-    histories[gpu.name] = [gpu.basePrice];
+    histories[gpu.name] = [defaultPrices[gpu.name]];
   });
   
   // Ensure that every time a new game is started, the daily quotes, initial notes and welcome are randomized from the meme dictionary!
@@ -398,6 +437,9 @@ export function initGameState(difficulty: "easy" | "normal" | "hard" = "normal")
     gameStarted: false,
     soundEnabled: true,
     todayBestDeal: "暂无成交",
-    todayMarketTalk: `【晨曦看盘】：${shuffledInitialMemeQuote} 今天的二手卡柜台依然烟火气十足。`
+    todayMarketTalk: `【晨曦看盘】：${shuffledInitialMemeQuote} 今天的二手卡柜台依然烟火气十足。`,
+    consecProfitableDays: 0,
+    unlockedAchievements: [],
+    yesterdayAssets: startingCash
   };
 }

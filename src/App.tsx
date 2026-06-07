@@ -160,6 +160,7 @@ export default function App() {
     quote: string;
     event: any;
     prices: Record<string, number>;
+    previousPrices?: Record<string, number>;
   } | null>(() => {
     try {
       const saved = localStorage.getItem("gpu_scalper_sim_morning_broadcast");
@@ -272,6 +273,58 @@ export default function App() {
     }
   };
 
+  // Achievement trigger helper
+  const triggerAchievement = (
+    stateVal: GameState,
+    achievementId: string,
+    title: string,
+    desc: string,
+    repAward: number,
+    cashAward: number
+  ): GameState => {
+    const unlocked = stateVal.unlockedAchievements || [];
+    if (unlocked.includes(achievementId)) {
+      return stateVal;
+    }
+
+    const nextUnlocked = [...unlocked, achievementId];
+    
+    const achievementLog: GameLog = {
+      id: `achievement_${achievementId}_${Date.now()}`,
+      day: stateVal.day,
+      time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
+      text: `🏆【成就解锁：${title}】${desc} ➜ 额外信誉 +${repAward}，奖励现金 +¥${cashAward}！`,
+      type: "achievement" // This text starts with 【成就：, so StatsLogs will automatically style it beautifully!
+    };
+
+    return {
+      ...stateVal,
+      unlockedAchievements: nextUnlocked,
+      reputation: Math.max(0, Math.min(100, stateVal.reputation + repAward)),
+      cash: stateVal.cash + cashAward,
+      logs: [achievementLog, ...stateVal.logs]
+    };
+  };
+
+  const checkPassiveAchievements = (s: GameState): GameState => {
+    let tempState = s;
+    const unlocked = tempState.unlockedAchievements || [];
+    
+    // 1. Reputation >= 100
+    if (tempState.reputation >= 100 && !unlocked.includes("reputation_star")) {
+      tempState = triggerAchievement(
+        tempState,
+        "reputation_star",
+        "金字招牌",
+        "店铺信誉门楣生辉，攀升至 100 分满星！华强北发烧友直呼其为诚信之光！",
+        10,
+        1200
+      );
+    }
+    
+    return tempState;
+  };
+
   const handleTabChange = (tab: "market" | "inventory" | "xianyu" | "trends") => {
     playSound("click");
     setState(prev => ({ ...prev, activeTab: tab }));
@@ -306,6 +359,7 @@ export default function App() {
       condition: customer.condition,
       risk: isBrandNew ? 5 : customer.condition === GpuCondition.PersonalUse ? 15 : customer.condition === GpuCondition.Netbar ? 35 : customer.condition === GpuCondition.Miner ? 60 : 80,
       hasIssue: customer.hasIssue,
+      isTested: false,
       testResult: "未检测",
       issueKnown: false
     };
@@ -324,7 +378,7 @@ export default function App() {
         type: "deal"
       };
 
-      const newState = {
+      let newState: GameState = {
         ...prev,
         cash: prev.cash - finalPrice,
         inventory: updatedInventory,
@@ -332,6 +386,22 @@ export default function App() {
         actionsLeft: prev.actionsLeft - 1,
         logs: [detailLog, ...prev.logs]
       };
+
+      // Check for epic_snipe achievement (捡漏神卡)
+      const marketPrice = prev.gpuPriceFluctuations[customer.gpuName] || customer.askPrice;
+      const isHighQuality = customer.condition === GpuCondition.BrandNew || customer.condition === GpuCondition.PersonalUse;
+      if (!customer.hasIssue && isHighQuality && finalPrice <= marketPrice * 0.65) {
+        newState = triggerAchievement(
+          newState,
+          "epic_snipe",
+          "究极捡漏王",
+          `以低于今日大盘价 35% 以上的超低捡漏价 ¥${finalPrice} (今日大盘参考价约 ¥${marketPrice})，成功低吸购入一张完美品质 ${customer.gpuName} (${customer.condition})！`,
+          20,
+          800
+        );
+      }
+
+      newState = checkPassiveAchievements(newState);
       saveToStorage(newState);
       return newState;
     });
@@ -394,6 +464,7 @@ export default function App() {
       condition,
       risk: condition === GpuCondition.Corpse ? 99 : 5,
       hasIssue,
+      isTested: false,
       testResult: "未检测",
       issueKnown: false
     };
@@ -407,7 +478,7 @@ export default function App() {
         type: logType === "success" ? "deal" : "error"
       };
 
-      const newState = {
+      let newState: GameState = {
         ...prev,
         cash: prev.cash - cost,
         inventory: [...prev.inventory, newGpu],
@@ -415,6 +486,20 @@ export default function App() {
         actionsLeft: prev.actionsLeft - 1,
         logs: [detailLog, ...prev.logs]
       };
+
+      // Check for black_market_legend achievement (盲盒之神)
+      if (isSuccessful && (condition === GpuCondition.BrandNew || condition === GpuCondition.PersonalUse) && !hasIssue) {
+        newState = triggerAchievement(
+          newState,
+          "black_market_legend",
+          "盲盒之神",
+          `在深夜黑街冒死摸金，竟然盲开出一只零暗病、完美原装品相的 ${gpuName} 顶级显卡！`,
+          15,
+          1000
+        );
+      }
+
+      newState = checkPassiveAchievements(newState);
       saveToStorage(newState);
       return newState;
     });
@@ -544,6 +629,7 @@ export default function App() {
 
           return {
             ...gpu,
+            isTested: true,
             testResult: testResultText,
             issueKnown: (testResultText === "有暗病" || isCorpse) ? true : gpu.issueKnown,
             defectType: isCorpse ? "物理毁坏/水泥假核心" : (testResultText === "有暗病" ? "核心缩缸或显存过热" : undefined)
@@ -598,6 +684,7 @@ export default function App() {
             ...gpu,
             hasIssue: false,
             testResult: "正常",
+            isTested: true,
             condition: improvedCondition,
             boughtPrice: Math.max(100, Math.round(gpu.boughtPrice * (1 - costDiscountPercentage / 100))),
             defectType: undefined
@@ -668,7 +755,10 @@ export default function App() {
         type: isCrash ? "error" : "success"
       };
 
-      const newState = {
+      const ogGpu = prev.inventory.find(g => g.id === gpuId);
+      const profit = (ogGpu && !isCrash) ? (finalBillPrice - ogGpu.boughtPrice) : 0;
+
+      let newState: GameState = {
         ...prev,
         cash: prev.cash + finalBillPrice,
         inventory: filteredInventory,
@@ -677,6 +767,19 @@ export default function App() {
         crashCount: isCrash ? prev.crashCount + 1 : prev.crashCount,
         logs: [newLog, ...prev.logs]
       };
+
+      if (profit >= 1500) {
+        newState = triggerAchievement(
+          newState,
+          "deal_master",
+          "华强北倒爷之王",
+          `在单张极速出卡交易中大发横财，一笔爆砍 ¥${profit} 爽快纯差价！`,
+          15,
+          1000
+        );
+      }
+
+      newState = checkPassiveAchievements(newState);
       saveToStorage(newState);
       return newState;
     });
@@ -719,7 +822,7 @@ export default function App() {
     }
 
     // Generate next day standard reference base prices
-    const nextPrices = generateDailyPrices(nextDayNum, nextEvent);
+    const nextPrices = generateDailyPrices(nextDayNum, nextEvent, state.gpuPriceFluctuations);
     
     // Update histories for chart views
     const nextHistories = { ...state.gpuPriceHistories };
@@ -759,6 +862,11 @@ export default function App() {
         updatedLogs.unshift(extraSituationLog);
       }
 
+      // Calculate assets at end of previous day, comparing to previous baseline to compute consecutive profits
+      const endPrevDayAssets = prev.cash + prev.inventory.reduce((sum, g) => sum + g.boughtPrice, 0);
+      const isProfitable = endPrevDayAssets >= (prev.yesterdayAssets || 0);
+      const nextConsec = isProfitable ? (prev.consecProfitableDays || 0) + 1 : 0;
+
       let nextState: GameState = {
         ...prev,
         day: nextDayNum,
@@ -767,13 +875,30 @@ export default function App() {
         gpuPriceFluctuations: nextPrices,
         gpuPriceHistories: nextHistories,
         todayMarketTalk: comment,
-        logs: updatedLogs
+        logs: updatedLogs,
+        consecProfitableDays: nextConsec,
+        yesterdayAssets: endPrevDayAssets // Today's baseline isYesterdayAssets for consecutive days check tomorrow
       };
 
       // Call side random effects if any
       if (extraCashAction) {
         extraCashAction(nextState);
       }
+
+      // Trigger consec_profitable_3 achievement (稳扎稳打)
+      if (nextConsec === 3) {
+        nextState = triggerAchievement(
+          nextState,
+          "consec_profitable_3",
+          "稳扎稳打",
+          "达成连续 3 天今日总净资产（现金+账面库存进市价）未出现任何亏损的卓越生存纪录！金牌倒爷风范初显！",
+          15,
+          500
+        );
+      }
+
+      // Check passive achievements
+      nextState = checkPassiveAchievements(nextState);
 
       // Pre-emptive bankrupt check at start of day
       const estimateAssets = nextState.cash + nextState.inventory.reduce((sum, g) => sum + g.boughtPrice, 0);
@@ -789,7 +914,8 @@ export default function App() {
         day: nextDayNum,
         quote: comment,
         event: nextEvent,
-        prices: nextPrices
+        prices: nextPrices,
+        previousPrices: state.gpuPriceFluctuations
       });
 
       return nextState;
@@ -948,8 +1074,12 @@ export default function App() {
   const isDrownedInStock = state.inventory.length > 50;
   const isFailureOutcome = isOutOfMoneyBankrupt || isBannedByReputation || isDrownedInStock;
 
-  // New accurate victory metric checking
-  const hasReachedVictoryCondition = totalAssetsSum >= 300000 || state.totalSold >= 100 || state.reputation >= 100;
+  // New accurate victory metric checking (must meet at least 2 of the 3 goals to win)
+  const isGoal1Met = totalAssetsSum >= 300000;
+  const isGoal2Met = state.totalSold >= 100;
+  const isGoal3Met = state.reputation >= 100;
+  const metGoalsCount = (isGoal1Met ? 1 : 0) + (isGoal2Met ? 1 : 0) + (isGoal3Met ? 1 : 0);
+  const hasReachedVictoryCondition = metGoalsCount >= 2;
 
   // Final Day check outcome triggers
   const forceGameOver = state.isGameOver || (state.day >= 30 && state.actionsLeft === 0) || isFailureOutcome;
@@ -962,7 +1092,12 @@ export default function App() {
   } else if (isDrownedInStock) {
     failureReasonText = "库存多于 50 张！货架倒塌、库房塞爆。由于资金被存货全部套牢毫无现金流，最终向网贷平台投降。";
   } else if (state.day >= 30 && !hasReachedVictoryCondition) {
-    failureReasonText = "30天限期已至。在清账盘货结算时，你既没有达成 ¥300,000 总资产目标，也未能实现累计卖出 100 张显卡或攒齐 100 点信誉，遗憾未能通过考核。";
+    const goalsMetText = [];
+    if (isGoal1Met) goalsMetText.push("¥300,000总资产");
+    if (isGoal2Met) goalsMetText.push("累计卖出100张显卡");
+    if (isGoal3Met) goalsMetText.push("100点信誉度");
+    const metDesc = goalsMetText.length > 0 ? `（你仅达成了：${goalsMetText.join("、")}）` : "（你一个目标都没能达成）";
+    failureReasonText = `30天限期已至。在清账盘货结算时，你必须在三大终极目标（总资产≥¥300,000、累计卖出≥100张显卡、信誉度≥100）中【至少达成两项】。目前你只达成了 ${metGoalsCount} 项${metDesc}，遗憾未能通过终极考核！`;
   }
 
   return (
@@ -978,26 +1113,26 @@ export default function App() {
             📟
           </div>
           <div>
-            <h1 className="text-sm font-black tracking-widest text-zinc-100 uppercase flex items-center gap-1">
+            <h1 className="typo-title-sm flex items-center gap-1">
               <span>显卡贩子模拟器 v1.0</span>
-              <span className="text-[9px] px-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold rounded">LIVE</span>
+              <span className="text-xs px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold rounded">LIVE</span>
             </h1>
-            <p className="text-[10px] text-zinc-500 font-mono">
+            <p className="typo-mono-tiny">
               Computer Store & GPU Secondary Market trading cabin
             </p>
           </div>
         </div>
 
         {/* Dynamic header stats tickers */}
-        <div className="hidden lg:flex items-center gap-5 text-xs font-mono">
+        <div className="hidden lg:flex items-center gap-5">
           <div className="text-right">
-            <span className="text-zinc-600 font-sans block text-[9px]">DIFFICULTY 等级</span>
-            <span className="text-zinc-400 font-bold uppercase">{state.difficulty === "easy" ? "🟢 新手贩子" : state.difficulty === "hard" ? "🔴 矿老板克星" : "🟡 老油条"}</span>
+            <span className="typo-title-xs block">DIFFICULTY 等级</span>
+            <span className="typo-mono-regular font-bold uppercase">{state.difficulty === "easy" ? "🟢 新手贩子" : state.difficulty === "hard" ? "🔴 矿老板克星" : "🟡 老油条"}</span>
           </div>
           <div className="w-px h-6 bg-zinc-900" />
           <div className="text-right">
-            <span className="text-zinc-600 font-sans block text-[9px]">TOTAL VALUE 估算总值</span>
-            <span className="text-emerald-400 font-extrabold">{formatCurrency(totalAssetsSum)}</span>
+            <span className="typo-title-xs block">TOTAL VALUE 估算总值</span>
+            <span className="text-emerald-400 typo-mono-display font-extrabold">{formatCurrency(totalAssetsSum)}</span>
           </div>
         </div>
       </header>
@@ -1009,7 +1144,7 @@ export default function App() {
             <span>⚠️</span>
             <span>MARKET FLASH 实时播报 /:</span>
           </span>
-          <marquee scrollamount="3" className="flex-1 text-[11px] font-medium tracking-wide">
+          <marquee scrollamount="3" className="flex-1 text-xs font-medium tracking-wide">
             {state.currentEvent 
               ? `【大盘剧烈波动特派】${state.currentEvent.title}: ${state.currentEvent.desc} —— 建议密切关注对应的显卡面值波动！` 
               : `AI算力热度强劲狂飙！RTX 3090/4090 D 价格再度震荡。今日市井传闻：“${state.todayMarketTalk}”。注意防范瑕疵矿卡，闲鱼大刀纠纷风险！`
@@ -1057,7 +1192,7 @@ export default function App() {
                       <User className="w-4 h-4 text-indigo-400 shrink-0" />
                       <span>1. 去市场收卡 🏮</span>
                     </span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-950 group-hover:bg-zinc-900">
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-zinc-950 group-hover:bg-zinc-900">
                       {activeCustomers.length}
                     </span>
                   </button>
@@ -1075,7 +1210,7 @@ export default function App() {
                       <Box className="w-4 h-4 text-sky-400 shrink-0" />
                       <span>2. 查看与检测库存 📦</span>
                     </span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-950 group-hover:bg-zinc-900">
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-zinc-950 group-hover:bg-zinc-900">
                       {state.inventory.length}
                     </span>
                   </button>
@@ -1119,11 +1254,11 @@ export default function App() {
                     className="w-full py-3 px-3 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-400 hover:to-pink-400 text-zinc-950 font-black text-xs tracking-wider text-center shadow-lg hover:shadow-indigo-500/20 active:scale-95 transition flex items-center justify-center gap-1.5"
                   >
                     <span>🛌 进入下一天</span>
-                    <span className="font-mono text-[10px] bg-zinc-950/20 text-zinc-950 px-1.5 py-0.5 rounded font-black">
+                    <span className="font-mono text-xs bg-zinc-950/20 text-zinc-950 px-1.5 py-0.5 rounded font-black">
                       Day {state.day} ➜ {state.day + 1}
                     </span>
                   </button>
-                  <p className="text-[10px] text-zinc-500 font-mono text-center mt-1.5">
+                  <p className="text-xs text-zinc-500 font-mono text-center mt-1.5">
                     进入下一天将恢复5次行动力并大幅波动行情！
                   </p>
                 </div>
@@ -1131,8 +1266,8 @@ export default function App() {
 
               {/* Rules summary rail */}
               <div className="border border-zinc-900 bg-zinc-950 rounded-xl p-4 space-y-2 shrink-0">
-                <span className="text-[10px] font-bold text-zinc-400 tracking-wider font-mono">🎯 达成目标所需（其一满足即可）：</span>
-                <ul className="text-[11px] text-zinc-500 list-disc list-inside space-y-1 font-sans">
+                <span className="text-xs font-bold text-zinc-400 tracking-wider font-mono">🎯 达成目标所需（其一满足即可）：</span>
+                <ul className="text-xs text-zinc-500 list-disc list-inside space-y-1 font-sans">
                   <li>30天期末总资产达到 <strong className="text-zinc-400">¥300,000</strong></li>
                   <li>累计卖出交易 <strong className="text-zinc-400">100</strong> 张显卡</li>
                   <li>商家信誉值滚到 <strong className="text-zinc-400">100满分</strong></li>
@@ -1195,7 +1330,7 @@ export default function App() {
             <div className="space-y-2 text-center">
               <span className="text-3xl">📟</span>
               <h2 className="text-xl font-black text-zinc-100 tracking-wide mt-1">
-                欢迎加盟：赛博显卡商战起航
+                欢迎加盟：显卡贩子模拟器
               </h2>
               <p className="text-xs text-zinc-400 max-w-sm mx-auto">
                 你将化身为成都华强北电脑城的一名显卡二道商。目标通过倒买倒卖、拼命砍价、排查缺陷和规避损毁，把本金做强做大！
@@ -1209,7 +1344,7 @@ export default function App() {
                 <div className="font-bold text-indigo-400 flex items-center gap-1">
                   <span>🏮 1. 行情与商户收卡</span>
                 </div>
-                <p className="text-zinc-400 text-[11px]">
+                <p className="text-zinc-400 text-xs">
                   每天有 3 到 5 名各种奇特背景散客在显卡市场叫价卖货。多打量他们的宝贝！用自带测算相比今天市场价的大概盈利。嫌贵？没关系！你有两次对其狠劲砍价的机会，砍中便宜买入，砍崩对方拉黑掉。
                 </p>
               </div>
@@ -1218,7 +1353,7 @@ export default function App() {
                 <div className="font-bold text-sky-400 flex items-center gap-1">
                   <span>🔬 2. 检测隐疾以防到手刀</span>
                 </div>
-                <p className="text-zinc-400 text-[11px]">
+                <p className="text-zinc-400 text-xs">
                   吃下来的卡往往伴随“暗病”。千万别直接甩上闲鱼！若是没测过被精明或不轨买家收到测试当场翻车，容易遭遇十几点信誉狂降和高额索赔。花费50至500元点亮/GPU-Z深度烤机或3DMark烤机，如实贴出检测，即可立于不败之地！
                 </p>
               </div>
@@ -1227,7 +1362,7 @@ export default function App() {
                 <div className="font-bold text-amber-400 flex items-center gap-1">
                   <span>🛍️ 3. 闲鱼上架大本营</span>
                 </div>
-                <p className="text-zinc-400 text-[11px]">
+                <p className="text-zinc-400 text-xs">
                   挂牌闲鱼提供三种模式：拼命甩货快速变现（大降价，90%被拍）、行情价中等变卖、和黑心高价等有缘大水鱼。如上所述，注意防范拿着显卡指指点点的无常买家！
                 </p>
               </div>
@@ -1236,7 +1371,7 @@ export default function App() {
                 <div className="font-bold text-rose-500">
                   <span>🚨 4. 临终破产界限</span>
                 </div>
-                <p className="text-zinc-400 text-[11px]">
+                <p className="text-zinc-400 text-xs">
                   如果信誉小于 10，闲鱼或柜台会被查封；如果兜里没钱且无片货（现金不足 ¥50）则倒闭；如30天期满未能实现 300,000 资产或达成 100 张售卡，商战也会退回新手村！
                 </p>
               </div>
@@ -1253,28 +1388,28 @@ export default function App() {
                 <button
                   id="btn-start-easy"
                   onClick={() => handleStartWithDifficulty("easy")}
-                  className="p-2.5 rounded-xl border border-emerald-900/30 bg-emerald-950/20 text-emerald-400 hover:bg-emerald-900/20 tracking-wider text-[11px] font-bold text-center transition py-3"
+                  className="p-2.5 rounded-xl border border-emerald-900/30 bg-emerald-950/20 text-emerald-400 hover:bg-emerald-900/20 tracking-wider text-xs font-bold text-center transition py-3"
                 >
                   🟢 新手贩子<br/>
-                  <span className="text-[9px] text-zinc-500 font-normal">本金8万 | 初始高信誉</span>
+                  <span className="text-xs text-zinc-500 font-normal">本金8万 | 初始高信誉</span>
                 </button>
 
                 <button
                   id="btn-start-normal"
                   onClick={() => handleStartWithDifficulty("normal")}
-                  className="p-2.5 rounded-xl border border-indigo-900/30 bg-indigo-950/20 text-indigo-400 hover:bg-indigo-900/20 tracking-wider text-[11px] font-bold text-center transition py-3"
+                  className="p-2.5 rounded-xl border border-indigo-900/30 bg-indigo-950/20 text-indigo-400 hover:bg-indigo-900/20 tracking-wider text-xs font-bold text-center transition py-3"
                 >
                   🟡 老油条<br/>
-                  <span className="text-[9px] text-zinc-500 font-normal">本金5万 | 信誉正常</span>
+                  <span className="text-xs text-zinc-500 font-normal">本金5万 | 信誉正常</span>
                 </button>
 
                 <button
                   id="btn-start-hard"
                   onClick={() => handleStartWithDifficulty("hard")}
-                  className="p-2.5 rounded-xl border border-rose-905/30 bg-rose-950/20 text-rose-400 hover:bg-rose-900/20 tracking-wider text-[11px] font-bold text-center transition py-3 animate-pulse"
+                  className="p-2.5 rounded-xl border border-rose-905/30 bg-rose-950/20 text-rose-400 hover:bg-rose-900/20 tracking-wider text-xs font-bold text-center transition py-3 animate-pulse"
                 >
                   🔴 矿老板克星<br/>
-                  <span className="text-[9px] text-zinc-500 font-normal">本金3万 | 信誉低寒</span>
+                  <span className="text-xs text-zinc-500 font-normal">本金3万 | 信誉低寒</span>
                 </button>
               </div>
             </div>
@@ -1375,6 +1510,7 @@ export default function App() {
           quote={morningBroadcast.quote}
           event={morningBroadcast.event}
           prices={morningBroadcast.prices}
+          previousPrices={morningBroadcast.previousPrices}
           onClose={() => setMorningBroadcast(null)}
         />
       )}

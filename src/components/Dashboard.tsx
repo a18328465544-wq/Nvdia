@@ -53,8 +53,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         
         <div className="flex flex-col h-full justify-between gap-3">
           <div>
-            <div className="text-xs text-zinc-500 uppercase tracking-wider font-semibold">今日排期</div>
-            <div className="text-3xl font-bold font-sans text-zinc-100 tracking-tight flex items-baseline gap-1 mt-1">
+            <div className="typo-title-xs">今日排期</div>
+            <div className="typo-title-lg text-zinc-100 flex items-baseline gap-1 mt-1">
               第 <span className="text-indigo-400 font-extrabold">{state.day}</span> 天
               <span className="text-xs text-zinc-400 font-normal">/ 30天</span>
             </div>
@@ -63,8 +63,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {/* Operations count progress */}
           <div>
             <div className="flex justify-between items-center text-xs mb-1">
-              <span className="text-zinc-500">今日行动力</span>
-              <span className={`font-mono font-bold ${state.actionsLeft === 0 ? 'text-rose-500' : 'text-emerald-400'}`}>
+              <span className="text-zinc-500 font-medium">今日行动力</span>
+              <span className={`typo-mono-regular font-bold ${state.actionsLeft === 0 ? 'text-rose-500' : 'text-emerald-400'}`}>
                 {state.actionsLeft} / 5
               </span>
             </div>
@@ -89,15 +89,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         <div className="flex flex-col h-full justify-between gap-2">
           <div>
-            <div className="text-xs text-zinc-500 uppercase tracking-wider font-semibold">流动现金</div>
-            <div className="text-2xl font-bold font-mono text-emerald-400 tracking-tight mt-1 truncate">
+            <div className="typo-title-xs">流动现金</div>
+            <div className="typo-mono-display text-emerald-400 mt-1 truncate">
               {formatCurrency(state.cash)}
             </div>
           </div>
 
           <div className="border-t border-zinc-800/80 pt-2 flex items-center justify-between text-xs">
-            <span className="text-zinc-500">估算总资产</span>
-            <span className="font-semibold text-zinc-300 font-mono">
+            <span className="text-zinc-500 font-medium">估算总资产</span>
+            <span className="typo-mono-regular font-semibold">
               {formatCurrency(currentAssetSum)}
             </span>
           </div>
@@ -113,15 +113,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         <div className="flex flex-col h-full justify-between gap-2">
           <div>
-            <div className="text-xs text-zinc-500 uppercase tracking-wider font-semibold">累计营收净利</div>
-            <div className={`text-2xl font-bold font-mono tracking-tight mt-1 truncate ${isProfitPositive ? 'text-indigo-400' : 'text-rose-500'}`}>
+            <div className="typo-title-xs">累计营收净利</div>
+            <div className={`typo-mono-display mt-1 truncate ${isProfitPositive ? 'text-indigo-400' : 'text-rose-500'}`}>
               {isProfitPositive ? "+" : ""}{formatCurrency(netProfit)}
             </div>
           </div>
 
           <div className="border-t border-zinc-800/80 pt-2 flex items-center justify-between text-xs">
-            <span className="text-zinc-500">目标完成度</span>
-            <span className="font-semibold text-indigo-300 font-mono">
+            <span className="text-zinc-500 font-medium">目标完成度</span>
+            <span className="typo-mono-regular text-indigo-300 font-semibold">
               {Math.min(100, Math.round((currentAssetSum / 300000) * 100))}%
             </span>
           </div>
@@ -138,13 +138,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="flex flex-col h-full justify-between gap-3">
           <div className="flex gap-4">
             <div className="flex-1">
-              <div className="text-xs text-zinc-500 uppercase tracking-wider font-semibold flex items-center gap-1">
+              <div className="typo-title-xs flex items-center gap-1">
                 <span>商家信誉</span>
                 {state.reputation >= 80 ? (
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-ping" />
                 ) : null}
               </div>
-              <div className="text-xl font-bold font-mono tracking-tight mt-0.5 flex items-baseline gap-1">
+              <div className="typo-mono-display mt-0.5 flex items-baseline gap-1">
                 <span className={`${state.reputation >= 70 ? 'text-emerald-400' : state.reputation >= 45 ? 'text-amber-400' : 'text-rose-500 font-black animate-pulse'}`}>
                   {state.reputation}
                 </span>
@@ -153,8 +153,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
 
             <div className="flex-1">
-              <div className="text-xs text-zinc-500 uppercase tracking-wider font-semibold">库存容量</div>
-              <div className="text-xl font-bold font-mono tracking-tight mt-0.5 flex items-baseline gap-0.5">
+              <div className="typo-title-xs">库存容量</div>
+              <div className="typo-mono-display mt-0.5 flex items-baseline gap-0.5">
                 <span className={`${state.inventory.length >= 40 ? 'text-rose-500 font-extrabold animate-pulse' : 'text-zinc-200'}`}>
                   {state.inventory.length}
                 </span>
@@ -203,7 +203,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             title="切换游戏音效"
           >
             {state.soundEnabled ? <Volume2 className="w-3.5 h-3.5 text-indigo-400" /> : <VolumeX className="w-3.5 h-3.5 text-zinc-600" />}
-            <span className="text-[11px] font-medium hidden sm:inline">{state.soundEnabled ? "音效开" : "音效关"}</span>
+            <span className="text-xs font-medium hidden sm:inline">{state.soundEnabled ? "音效开" : "音效关"}</span>
           </button>
 
           <button 
@@ -212,7 +212,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             className="p-1.5 px-3 rounded-lg border border-zinc-800 bg-zinc-900/60 text-xs text-zinc-400 hover:text-zinc-200 hover:border-zinc-700 transition flex items-center gap-1.5"
           >
             <HelpCircle className="w-3.5 h-3.5 text-sky-400" />
-            <span className="text-[11px] font-medium hidden sm:inline">新手攻略</span>
+            <span className="text-xs font-medium hidden sm:inline">新手攻略</span>
           </button>
 
           <button 
@@ -221,7 +221,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             className="p-1.5 px-3 rounded-lg border border-zinc-800 bg-rose-950/20 text-xs text-rose-400 border-rose-900/30 hover:bg-rose-900/30 hover:border-rose-700/60 transition flex items-center gap-1.5"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span className="text-[11px] font-medium">重开</span>
+            <span className="text-xs font-medium">重开</span>
           </button>
         </div>
       </div>

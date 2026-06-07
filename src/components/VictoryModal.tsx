@@ -36,7 +36,12 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
 }) => {
   const totalAssets = cash + inventoryCost;
   const results = getEndingResults(totalAssets, totalBought, totalSold, crashCount);
-  const isWinner = !isFailure && (totalAssets >= 300000 || totalSold >= 100 || reputation >= 100);
+  
+  const isGoal1Met = totalAssets >= 300000;
+  const isGoal2Met = totalSold >= 100;
+  const isGoal3Met = reputation >= 100;
+  const metGoalsCount = (isGoal1Met ? 1 : 0) + (isGoal2Met ? 1 : 0) + (isGoal3Met ? 1 : 0);
+  const isWinner = !isFailure && (metGoalsCount >= 2);
 
   // Clipboard copies state
   const [copied, setCopied] = useState(false);
@@ -263,11 +268,11 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
           </div>
 
           <div className="space-y-0.5">
-            <span className="text-[9px] sm:text-[10px] text-pink-500 font-black uppercase tracking-widest font-mono flex justify-center items-center gap-1.5">
+            <span className="text-xs text-pink-500 font-black uppercase tracking-widest font-mono flex justify-center items-center gap-1.5">
               <span>{isFailure ? "BANKRUPTCY STATS" : "30-DAY SHANGZHAN ENDING REPORT"}</span>
               <span className="h-1 w-1 bg-pink-500 rounded-full animate-ping" />
             </span>
-            <h2 className="text-lg sm:text-xl font-black text-zinc-100 uppercase tracking-tight">
+            <h2 className="typo-title-md text-zinc-100 uppercase">
               {isFailure ? "华强北商战腰折：倒闭惨案" : "三十天战期届满，年终财务清盘！"}
             </h2>
           </div>
@@ -276,28 +281,28 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto pt-1 font-mono">
             {/* Level Rank Card */}
             <div className={`p-3 rounded-xl border flex flex-col justify-center items-center gap-1 ${gradeBg}`}>
-              <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">倒爷综合能力段位</span>
+              <span className="text-xs text-zinc-500 font-bold uppercase tracking-wider">倒爷综合能力段位</span>
               <div className="flex items-baseline gap-1">
                 <span className={`text-3xl font-black ${gradeColor}`}>{scoreGrade}</span>
-                <span className="text-[10px] text-zinc-500">级</span>
+                <span className="text-xs text-zinc-500">级</span>
               </div>
-              <span className="text-[9px] text-zinc-400 font-sans text-center px-1 leading-tight">{gradeDesc}</span>
+              <span className="text-xs text-zinc-400 font-sans text-center px-1 leading-tight">{gradeDesc}</span>
             </div>
 
             {/* Main Title Badge Card */}
             <div className="p-3 rounded-xl border border-zinc-900 bg-zinc-950 flex flex-col justify-center items-center gap-1 shadow-inner">
-              <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">所得江湖终极称号</span>
+              <span className="text-xs text-zinc-500 font-bold uppercase tracking-wider">所得江湖终极称号</span>
               <div className="flex items-center gap-1.5 py-1">
                 <span className="text-2xl select-none">{mainTitleEmoji}</span>
                 <span className="text-sm font-black text-zinc-100 tracking-wide">{mainTitleFinal}</span>
               </div>
-              <span className="text-[9px] text-[#a855f7] bg-purple-500/5 border border-purple-500/10 px-1.5 py-0.5 rounded font-bold">华强北倒影名册已录入</span>
+              <span className="text-xs text-[#a855f7] bg-purple-500/5 border border-purple-500/10 px-1.5 py-0.5 rounded font-bold">华强北倒影名册已录入</span>
             </div>
           </div>
         </div>
 
         {/* Narrative comments */}
-        <div className="p-3.5 rounded-xl bg-zinc-950 border border-zinc-900/80 text-[11px] leading-relaxed italic text-zinc-300 text-center font-sans">
+        <div className="p-3.5 rounded-xl bg-zinc-950 border border-zinc-900/80 text-xs leading-relaxed italic text-zinc-300 text-center font-sans">
           {isFailure ? (
             <span className="text-rose-400 font-extrabold flex justify-center items-center gap-1">
               <AlertTriangle className="w-3.5 h-3.5 animate-pulse shrink-0" />
@@ -310,7 +315,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
 
         {/* 🏆 THE HALL OF MEME TITLES (NEW SEGMENT!) */}
         <div className="space-y-2">
-          <h3 className="text-zinc-500 uppercase tracking-widest text-[10px] font-black flex items-center gap-1.5 font-mono">
+          <h3 className="typo-title-xs text-zinc-500 flex items-center gap-1.5 font-mono">
             <Sparkles className="w-3.5 h-3.5 text-[#a855f7]" />
             <span>THE HALL OF MEME TITLES / 华强北荣誉称号挂牌室</span>
           </h3>
@@ -321,21 +326,21 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
               return (
                 <div 
                   key={title.id}
-                  className={`p-2.5 rounded-xl border text-[11px] transition duration-200 flex flex-col gap-1 ${title.unlocked ? title.color : title.lockedColor}`}
+                  className={`p-2.5 rounded-xl border text-xs transition duration-200 flex flex-col gap-1 ${title.unlocked ? title.color : title.lockedColor}`}
                 >
                   <div className="flex items-center justify-between font-bold">
                     <span className="flex items-center gap-1 font-mono text-zinc-200">
                       <span>{title.emoji}</span>
                       <span className={title.unlocked ? "text-zinc-100" : "text-zinc-500 font-normal line-through"}>{title.name}</span>
                     </span>
-                    <span className={`text-[8px] font-black uppercase px-1 py-0.2 rounded font-sans shrink-0 ${title.unlocked ? 'bg-zinc-100/10 border border-current text-current' : 'bg-zinc-900 text-zinc-600 border border-zinc-800'}`}>
+                    <span className={`text-xs font-black uppercase px-1 py-0.2 rounded font-sans shrink-0 ${title.unlocked ? 'bg-zinc-100/10 border border-current text-current' : 'bg-zinc-900 text-zinc-600 border border-zinc-800'}`}>
                       {title.unlocked ? "【已解锁】" : "【锁定】"}
                     </span>
                   </div>
-                  <p className="text-[9px] text-zinc-400 leading-tight font-sans">
+                  <p className="text-xs text-zinc-400 leading-tight font-sans">
                     {title.desc}
                   </p>
-                  <div className="text-[8px] text-zinc-500 bg-zinc-900/10 p-1 rounded font-mono flex items-center justify-between border border-zinc-900/20 mt-0.5">
+                  <div className="text-xs text-zinc-500 bg-zinc-900/10 p-1 rounded font-mono flex items-center justify-between border border-zinc-900/20 mt-0.5">
                     <span>条件: {title.conditionDesc}</span>
                   </div>
                 </div>
@@ -345,46 +350,46 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
         </div>
 
         {/* Technical ledger list */}
-        <div className="space-y-2 max-w-2xl font-mono text-[11px]">
-          <h3 className="text-zinc-500 uppercase tracking-widest text-[10px] font-black flex items-center gap-1.5">
+        <div className="space-y-2 max-w-2xl font-mono text-xs">
+          <h3 className="typo-title-xs text-zinc-500 flex items-center gap-1.5 font-mono">
             <Compass className="w-3.5 h-3.5 text-indigo-400" />
             <span>ACCOUNT AUDIT REPORT / 三十天账务明细表</span>
           </h3>
           
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-900/60">
-              <span className="text-zinc-500 block text-[9px] font-bold">手头流动现钞</span>
+              <span className="text-zinc-500 block text-xs font-bold">手头流动现钞</span>
               <span className="text-xs font-black text-emerald-400 block mt-0.5">{formatCurrency(cash)}</span>
             </div>
 
             <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-900/60">
-              <span className="text-zinc-500 block text-[9px] font-bold">压仓货值估价(按成本)</span>
+              <span className="text-zinc-500 block text-xs font-bold">压仓货值估价(按成本)</span>
               <span className="text-xs font-black text-zinc-300 block mt-0.5">{formatCurrency(inventoryCost)}</span>
             </div>
 
             <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-900/60">
-              <span className="text-zinc-500 block text-[9px] font-bold">收卡成交次数</span>
+              <span className="text-zinc-500 block text-xs font-bold">收卡成交次数</span>
               <span className="text-xs font-black text-indigo-400 block mt-0.5">{totalBought} 次</span>
             </div>
 
             <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-900/60">
-              <span className="text-zinc-500 block text-[9px] font-bold">闲鱼成功出手</span>
+              <span className="text-zinc-500 block text-xs font-bold">闲鱼成功出手</span>
               <span className="text-xs font-black text-amber-400 block mt-0.5">{totalSold} 次</span>
             </div>
 
             <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-900/60">
-              <span className="text-zinc-500 block text-[9px] font-bold">极品卡烤跑翻车数</span>
+              <span className="text-zinc-500 block text-xs font-bold">极品卡烤跑翻车数</span>
               <span className={`text-xs font-black block mt-0.5 ${crashCount > 0 ? 'text-rose-500 font-extrabold animate-pulse' : 'text-zinc-400'}`}>{crashCount} 次</span>
             </div>
 
             <div className="p-2 rounded-lg bg-zinc-950 border border-zinc-900/60">
-              <span className="text-zinc-500 block text-[9px] font-bold">商家信誉口碑</span>
+              <span className="text-zinc-500 block text-xs font-bold">商家信誉口碑</span>
               <span className="text-xs font-black text-sky-400 block mt-0.5">{reputation} / 100</span>
             </div>
           </div>
 
           <div className="p-2.5 rounded-lg bg-zinc-900/20 border border-zinc-900 flex justify-between items-center mt-1">
-            <span className="text-zinc-400 block text-[10px] font-bold uppercase tracking-wider">📊 终盘合计净资产 (流动现金 + 货值估算)</span>
+            <span className="text-zinc-400 block text-xs font-bold uppercase tracking-wider">📊 终盘合计净资产 (流动现金 + 货值估算)</span>
             <span className="text-sm font-black text-emerald-400">{formatCurrency(totalAssets)}</span>
           </div>
         </div>
@@ -392,7 +397,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
         {/* 📋 ULTRA COOL SHARE BLOCK (NEW!) */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <h3 className="text-zinc-500 uppercase tracking-widest text-[10px] font-black flex items-center gap-1.5 font-mono">
+            <h3 className="typo-title-xs text-zinc-500 flex items-center gap-1.5 font-mono">
               <Share2 className="w-3.5 h-3.5 text-emerald-400" />
               <span>SHARE CARD PREVIEW / 赛博倒爷纸质战绩卡一键复制</span>
             </h3>
@@ -400,14 +405,14 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
             <button
               id="btn-copy-combat-text"
               onClick={handleCopyShare}
-              className="py-1 px-3 text-[10px] font-bold rounded-lg bg-emerald-600/10 hover:bg-emerald-600 text-emerald-400 hover:text-zinc-950 border border-emerald-500/30 font-mono transition flex items-center gap-1"
+              className="py-1 px-3 text-xs font-bold rounded-lg bg-emerald-600/10 hover:bg-emerald-600 text-emerald-400 hover:text-zinc-950 border border-emerald-500/30 font-mono transition flex items-center gap-1"
             >
               <Copy className="w-3 h-3" />
               <span>一键复制装杯 🚀</span>
             </button>
           </div>
 
-          <div className="relative rounded-lg overflow-hidden border border-zinc-900 bg-zinc-950 p-2.5 font-mono text-[9px] leading-relaxed text-zinc-400 select-all whitespace-pre">
+          <div className="relative rounded-lg overflow-hidden border border-zinc-900 bg-zinc-950 p-2.5 font-mono text-xs leading-relaxed text-zinc-400 select-all whitespace-pre">
             {asciiShareText}
           </div>
         </div>
